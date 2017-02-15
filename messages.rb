@@ -7,12 +7,14 @@ class Messages
   #---
   def self.error_switch(error_string)
     case error_string
-    when 'OTHER_OPERATION_IN_PROGRESS'
-      error_try_later
-    when 'OPERATION_NOT_ALLOWED'
-      error_not_permitted
     when 'VM_BAD_POWER_STATE'
       error_vm_bad_power_state
+    when 'OTHER_OPERATION_IN_PROGRESS'
+      error_try_later
+    when 'OPERATION_NOT_ALLOWED' || 'VM IS TEMPLATE'
+      error_not_permitted
+    when 'SR_FULL'
+      error_disk_full
     else
       error_unknown(error_string)
     end
@@ -45,10 +47,18 @@ class Messages
     { message: 'Error', description: error_string }
   end
 
+  def self.error_disk_full
+    { message: 'Error', description: 'DISK_FULL_CONTACT_ADMINISTRATOR' }
+  end
+
   #---
   # Good Messages
   #---
   def self.success_nodesc
     { message: 'Success', description: 'NO_DESCRIPTION' }
+  end
+
+  def self.success_nodesc_with_payload(payload)
+    { message: 'Success', description: 'NO_DESCRIPTION', payload: payload }
   end
 end
