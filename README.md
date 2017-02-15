@@ -15,16 +15,17 @@ Example: [Communicate over RabbitMQ](amqpd.rb)
 ### How To use/Test? // 使い方 (英語のみ) // 食用方法 (English Only)
 ```sh
 # Set Environment Variables
-cd .../ruby-xenapi-new
-export XEN_SERVER_ADDR = "192.168.0.123"
-export XEN_SERVER_PORT = 443
-export XEN_SERVER_USER = 'root'
-export XEN_SERVER_PASS = 'foo-change-me'
+cd .../xen-api
+export XEN_SERVER_ADDR='192.168.0.123'
+export XEN_SERVER_PORT=443
+export XEN_SERVER_USER='root'
+export XEN_SERVER_PASS='foo-change-me'
 
 # Play the API on Interactive Ruby Script Environment
-irb --noecho --noprompt
-
-require xenapi.rb
+irb --noprompt
+```
+```ruby
+require './xenapi.rb'
 
 # Login
 xenapi = XenApi.new
@@ -39,6 +40,8 @@ xenapi.logout
 * http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters/
 * https://gist.github.com/ascendbruce/7070951
 * https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/
+* https://stackoverflow.com/questions/11918905/ruby-which-exception-is-best-to-handle-unset-environment-variables
+* https://github.com/savonrb/nori
 
 ### Documentations
 * TODO
