@@ -63,26 +63,36 @@ class Processor
     msg = {
       seq: parsed['id'],
       taskid: parsed['uuid'],
-      timestamp: Time.now.getutc.to_s,
+      timestamp: Time.now.to_s,
       payload: case parsed['task']
                when 'get.vms'
                  xenapi.all_vm
                when 'get.vm_detail'
-                 xenapi.vm_record(payload)
-               when 'get.vm_more_detail'
-                 xenapi.inspect_vm(payload)
+                 xenapi.get_vm_record(payload)
+               when 'get.vm_performance_data'
+                 xenapi.get_vm_metrics(payload)
+               when 'get.vm_runtime_data'
+                 xenapi.get_vm_guest_metrics(payload)
                when 'get.vm_network'
-                 xenapi.inspect_vm_network(payload, 'all')
+                 xenapi.get_vm_guest_metrics_network(payload)
                when 'get.vm_network_ip4'
-                 xenapi.inspect_vm_network(payload, 4)
+                 xenapi.get_vm_guest_metrics_network(payload)['0/ip']
                when 'get.vm_network_ip6'
-                 xenapi.inspect_vm_network(payload, 6)
+                 xenapi.get_vm_guest_metrics_network(payload)['0/ipv6/0']
                when 'set.vm_power_on'
                  xenapi.vm_power_on(payload)
                when 'set.vm_power_off'
                  xenapi.vm_power_off(payload)
                when 'set.vm_power_reboot'
                  xenapi.vm_power_reboot(payload)
+               when 'set.vm_power_suspend'
+                 xenapi.vm_power_pause(payload)
+               when 'set.vm_power_resume'
+                 xenapi.vm_power_unpause(payload)
+               when 'do.vm_clone'
+                 xenapi.vm_clone(payload['src_vm'], payload['new_vm_name'])
+               when 'do.vm_destroy'
+                 xenapi.vm_destroy(payload)
                else
                  Messages.error_undefined
                end
