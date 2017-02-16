@@ -24,41 +24,53 @@ class Messages
   # Bad Messages
   #---
   def self.error_undefined
-    { message: 'Error', description: 'ACTION_NOT_DEFINED' }
+    { status: 'Error', description: 'ACTION_NOT_DEFINED' }
   end
 
   def self.error_not_permitted
-    { message: 'Error', description: 'ACTION_NOT_PERMITTED' }
+    { status: 'Error', description: 'ACTION_NOT_PERMITTED' }
   end
 
   def self.error_vm_bad_power_state
-    { message: 'Error', description: 'VM_BAD_POWER_STATE' }
+    { status: 'Error', description: 'VM_BAD_POWER_STATE' }
   end
 
   def self.error_try_later
-    { message: 'Error', description: 'OTHER_OPERATION_IN_PROGRESS' }
+    { status: 'Error', description: 'OTHER_OPERATION_IN_PROGRESS' }
   end
 
   def self.error_unsupported
-    { message: 'Error', description: 'UNSUPPORTED' }
+    { status: 'Error', description: 'UNSUPPORTED' }
   end
 
   def self.error_unknown(error_string)
-    { message: 'Error', description: error_string }
+    { status: 'Error', description: error_string }
+  end
+
+  def self.error_unknown_with_payload(error_string, payload)
+    { status: 'Error', description: error_string, payload: payload }
   end
 
   def self.error_disk_full
-    { message: 'Error', description: 'DISK_FULL_CONTACT_ADMINISTRATOR' }
+    { status: 'Error', description: 'DISK_FULL_CONTACT_ADMINISTRATOR' }
   end
 
   #---
   # Good Messages
   #---
   def self.success_nodesc
-    { message: 'Success', description: 'NO_DESCRIPTION' }
+    { status: 'Success', description: 'NO_DESCRIPTION' }
   end
 
   def self.success_nodesc_with_payload(payload)
-    { message: 'Success', description: 'NO_DESCRIPTION', payload: payload }
+    { status: 'Success', description: 'NO_DESCRIPTION', payload: payload }
+  end
+
+  def self.success_custom_message(description)
+    { status: 'Success', description: description, payload: payload }
+  end
+
+  def self.success_custom_message_with_payload(description, payload)
+    { status: 'Success', description: description, payload: payload }
   end
 end

@@ -66,7 +66,7 @@ class Processor
       timestamp: Time.now.to_s,
       payload: case parsed['task']
                when 'get.vms'
-                 xenapi.all_vm
+                 xenapi.list_all_vm
                when 'get.vm_detail'
                  xenapi.get_vm_record(payload)
                when 'get.vm_performance_data'
@@ -97,8 +97,8 @@ class Processor
                  Messages.error_undefined
                end
     }
+    xenapi.session_logout
     rabbit.publish(JSON.generate(msg), msg_id)
-    xenapi.logout
   end
 end
 
