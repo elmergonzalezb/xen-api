@@ -11,9 +11,9 @@ require_relative 'messages'
 class XenApi
   # https://stackoverflow.com/questions/11918905/ruby-which-exception-is-best-to-handle-unset-environment-variables
   XEN_SERVER_PORT = \
-    ENV['XEN_SERVER_PORT'].empty? ? 443    : ENV['XEN_SERVER_PORT'].to_i
+    ENV['XEN_SERVER_PORT'].nil? ? 443    : ENV['XEN_SERVER_PORT'].to_i
   XEN_SERVER_USER = \
-    ENV['XEN_SERVER_USER'].empty? ? 'root' : ENV['XEN_SERVER_USER']
+    ENV['XEN_SERVER_USER'].nil? ? 'root' : ENV['XEN_SERVER_USER']
 
   # Config Client
   def initialize
@@ -43,13 +43,22 @@ class XenApi
   # Using list instead to circumvent RuboCop
   def list_all_vm
     all_records = @connect.call('VM.get_all', @session)['Value']
+    # Filter Away Control Domain
+    no_dom0 = all_records.select do |vm_opaqueref|
+      !check_vm_entity_is_dom0(vm_opaqueref)
+    end
     # Filter Away Template
-    no_template = all_records.select do |vm_opaqueref|
+    no_dom0.select do |vm_opaqueref|
       !check_vm_entity_is_template(vm_opaqueref)
     end
-    # Filter Away Control Domain
-    no_template.select do |vm_opaqueref|
-      !check_vm_entity_is_dom0(vm_opaqueref)
+  end
+
+  # Get all Templates
+  def list_all_templates
+    all_records = @connect.call('VM.get_all', @session)['Value']
+    # Filter Away non-template (VM Instances + dom0)
+    all_records.select do |vm_opaqueref|
+      check_vm_entity_is_template(vm_opaqueref)
     end
   end
 
@@ -203,6 +212,47 @@ class XenApi
     end
   end
 
+  # TODO: Clone Template
+  def vm_clone_from_template(template_vm_opaqueref, \
+                             new_vm_name, pv_boot_param, \
+                             repo_url, debian, deb_distro)
+    if check_vm_entity_is_nonexist(template_vm_opaqueref) \
+      || check_vm_entity_is_dom0(vm_opaqueref) \
+      || !check_vm_entity_is_template(vm_opaqueref) \
+      || new_vm_name.nil? \
+      || new_vm_name == ''
+
+      Messages.error_not_permitted
+    else
+      # The NULL Reference is required to fulfill the requirement.
+      task_token = \
+        @connect.call('Async.VM.copy', @session, template_vm_opaqueref, \
+                      new_vm_name, 'OpaqueRef:NULL')
+      # get new vm reference point
+      result = async_task_manager(task_token, true)['value']
+      # Set boot paramaters, important for configure the kickstart definition
+      @connect.call('VM.set_PV_args', @session, result, pv_boot_param)
+      # Set repository URL, important for install
+      if debian == true
+        d = []
+        # Unset Old Value
+        d[0] = vm_rm_other_config(result, 'debian-release')['Status']
+        d[1] = vm_rm_other_config(result, 'install-repository')['Status']
+        # Set New Value
+        d[2] = vm_add_other_config(result, 'debian-release', deb_distro)['Status']
+        d[3] = vm_add_other_config(result, 'install-repository', repo_url)['Status']
+      else
+        # I will deal with centos stuff later
+        Messages.error_unsupported
+      end
+      if d.inclde?('Error')
+        Messages.error_unsupported
+      else
+        Messages.success_nodesc_with_payload(result)
+      end
+    end
+  end
+
   # Erase the target Virtual Machine, along with related VDIs
   # Returns the record of new vm
   def vm_destroy(old_vm_opaqueref)
@@ -228,6 +278,14 @@ class XenApi
         result
       end
     end
+  end
+
+  def vm_rm_other_config(vm_opaqueref, key)
+    @connect.call('VM.remove_from_other_config', @session, vm_opaqueref, key)
+  end
+
+  def vm_add_other_config(vm_opaqueref, key, value)
+    @connect.call('VM.add_to_other_config', @session, vm_opaqueref, key, value)
   end
 
   #---
@@ -279,6 +337,26 @@ class XenApi
     # Filter Away XS-Tools
     no_snapshot.select do |vdi_opaqueref|
       !check_vdi_is_xs_iso(vdi_opaqueref)
+    end
+  end
+
+  # Get a list of all VDI
+  def list_vdi_snapshot
+    all_records = \
+      @connect.call('VDI.get_all', @session)['Value']
+    # Filter Away Snapshots
+    all_records.select do |vdi_opaqueref|
+      check_vdi_is_a_snapshot(vdi_opaqueref)
+    end
+  end
+
+  # Get XS-TOOLS VDI
+  def list_vdi_tools
+    all_records = \
+      @connect.call('VDI.get_all', @session)['Value']
+    # Filter Away all butXS-Tools
+    all_records.select do |vdi_opaqueref|
+      check_vdi_is_xs_iso(vdi_opaqueref)
     end
   end
 
