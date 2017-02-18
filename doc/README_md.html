@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>README - RDoc Documentation</title>
+
+<script type="text/javascript">
+  var rdoc_rel_prefix = "./";
+  var index_rel_prefix = "./";
+</script>
+
+<script src="./js/jquery.js"></script>
+<script src="./js/darkfish.js"></script>
+
+<link href="./css/fonts.css" rel="stylesheet">
+<link href="./css/rdoc.css" rel="stylesheet">
+
+
+
+<body id="top" role="document" class="file">
+<nav role="navigation">
+  <div id="project-navigation">
+    <div id="home-section" role="region" title="Quick navigation" class="nav-section">
+  <h2>
+    <a href="./index.html" rel="home">Home</a>
+  </h2>
+
+  <div id="table-of-contents-navigation">
+    <a href="./table_of_contents.html#pages">Pages</a>
+    <a href="./table_of_contents.html#classes">Classes</a>
+    <a href="./table_of_contents.html#methods">Methods</a>
+  </div>
+</div>
+
+    <div id="search-section" role="search" class="project-section initially-hidden">
+  <form action="#" method="get" accept-charset="utf-8">
+    <div id="search-field-wrapper">
+      <input id="search-field" role="combobox" aria-label="Search"
+             aria-autocomplete="list" aria-controls="search-results"
+             type="text" name="search" placeholder="Search" spellcheck="false"
+             title="Type to search, Up and Down to navigate, Enter to load">
+    </div>
+
+    <ul id="search-results" aria-label="Search Results"
+        aria-busy="false" aria-expanded="false"
+        aria-atomic="false" class="initially-hidden"></ul>
+  </form>
+</div>
+
+  </div>
+
+  
+<div class="nav-section">
+  <h3>Table of Contents</h3>
+
+  <ul class="link-list" role="directory">
+    <li><a href="#label-XenServer+API+Adapter">XenServer API Adapter</a>
+    <li><a href="#label-Requirements+-2F-2F+-E3-82-B7-E3-82-B9-E3-83-86-E3-83-A0-E5-BF-85-E8-A6-81-E6-9D-A1-E4-BB-B6+-2F-2F+-E7-B3-BB-E7-B5-B1-E8-A6-81-E6-B1-82">Requirements // システム必要条件 // 系統要求</a>
+    <li><a href="#label-How+To+use-2FTest-3F+-2F-2F+-E4-BD-BF-E3-81-84-E6-96-B9+-28-E8-8B-B1-E8-AA-9E-E3-81-AE-E3-81-BF-29+-2F-2F+-E9-A3-9F-E7-94-A8-E6-96-B9-E6-B3-95+-28English+Only-29">How To use/Test? // 使い方 (英語のみ) // 食用方法 (English Only)</a>
+    <li><a href="#label-Acknowledgements">Acknowledgements</a>
+    <li><a href="#label-Documentations">Documentations</a>
+    <li><a href="#label-Todo">Todo</a>
+    <li><a href="#label-Footnote">Footnote</a>
+  </ul>
+</div>
+
+
+  <div id="project-metadata">
+    <div id="fileindex-section" class="nav-section">
+  <h3>Pages</h3>
+
+  <ul class="link-list">
+  
+    <li><a href="./Gemfile.html">Gemfile</a>
+  
+    <li><a href="./Gemfile_lock.html">Gemfile.lock</a>
+  
+    <li><a href="./LICENSE.html">LICENSE</a>
+  
+    <li><a href="./README_md.html">README</a>
+  
+  </ul>
+</div>
+
+  </div>
+</nav>
+
+<main role="main" aria-label="Page README.md">
+
+<h2 id="label-XenServer+API+Adapter">XenServer API Adapter<span><a href="#label-XenServer+API+Adapter">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p><a href="https://app.codeship.com/projects/202210">
+rdoc-image:https://app.codeship.com/projects/4d2a9250-d4a2-0134-07f4-1aaf05821783/status?branch=master</a></p>
+
+<p>This repository contains the source code of interacting a XenServer
+Hypervisor over its XML-RPC API.</p>
+
+<p>Example: <a href="amqpd.rb">Communicate over RabbitMQ</a></p>
+<hr>
+
+<h3 id="label-Requirements+-2F-2F+-E3-82-B7-E3-82-B9-E3-83-86-E3-83-A0-E5-BF-85-E8-A6-81-E6-9D-A1-E4-BB-B6+-2F-2F+-E7-B3-BB-E7-B5-B1-E8-A6-81-E6-B1-82">Requirements // システム必要条件 // 系統要求<span><a href="#label-Requirements+-2F-2F+-E3-82-B7-E3-82-B9-E3-83-86-E3-83-A0-E5-BF-85-E8-A6-81-E6-9D-A1-E4-BB-B6+-2F-2F+-E7-B3-BB-E7-B5-B1-E8-A6-81-E6-B1-82">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>Ruby &gt;= 2.3.0 w/ Bundler</p>
+</li><li>
+<p>Linux (M$ Windows から残念です、申し訳ございません) (不支援 M$ Windows)</p>
+</li></ul>
+
+<h3 id="label-How+To+use-2FTest-3F+-2F-2F+-E4-BD-BF-E3-81-84-E6-96-B9+-28-E8-8B-B1-E8-AA-9E-E3-81-AE-E3-81-BF-29+-2F-2F+-E9-A3-9F-E7-94-A8-E6-96-B9-E6-B3-95+-28English+Only-29">How To use/Test? // 使い方 (英語のみ) // 食用方法 (English Only)<span><a href="#label-How+To+use-2FTest-3F+-2F-2F+-E4-BD-BF-E3-81-84-E6-96-B9+-28-E8-8B-B1-E8-AA-9E-E3-81-AE-E3-81-BF-29+-2F-2F+-E9-A3-9F-E7-94-A8-E6-96-B9-E6-B3-95+-28English+Only-29">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<pre># Set Environment Variables
+cd .../xen-api
+export XEN_SERVER_ADDR=&#39;192.168.0.123&#39;
+export XEN_SERVER_PORT=443
+export XEN_SERVER_USER=&#39;root&#39;
+export XEN_SERVER_PASS=&#39;foo-change-me&#39;
+
+# Play the API on Interactive Ruby Script Environment
+irb --noprompt</pre>
+
+<pre class="ruby"><span class="ruby-identifier">require</span> <span class="ruby-string">&#39;./xenapi.rb&#39;</span>
+
+<span class="ruby-comment"># Login</span>
+<span class="ruby-identifier">xenapi</span> = <span class="ruby-constant">XenApi</span>.<span class="ruby-identifier">new</span>(<span class="ruby-constant">ENV</span>[<span class="ruby-string">&#39;XEN_SERVER_ADDR&#39;</span>], <span class="ruby-constant">ENV</span>[<span class="ruby-string">&#39;XEN_SERVER_PORT&#39;</span>], <span class="ruby-constant">ENV</span>[<span class="ruby-string">&#39;XEN_SERVER_USER&#39;</span>], <span class="ruby-constant">ENV</span>[<span class="ruby-string">&#39;XEN_SERVER_PASS&#39;</span>])
+
+<span class="ruby-comment"># logout</span>
+<span class="ruby-identifier">xenapi</span>.<span class="ruby-identifier">logout</span>
+</pre>
+
+<p><img src="screenshot.png?raw=true"></p>
+
+<h3 id="label-Acknowledgements">Acknowledgements<span><a href="#label-Acknowledgements">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p><a href="https://github.com/savonrb/nori">Nori XML Parser</a></p>
+</li><li>
+<p><a href="https://xapi-project.github.io/">XAPI Project</a></p>
+</li><li>
+<p>Navigating in website farrrrrr better than 600 Pages PDF</p>
+</li><li>
+<p><a href="https://gist.github.com/ascendbruce/7070951">JSON Test Code
+Snippet from ascendbruce</a></p>
+</li><li>
+<p><a href="https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/">A
+Guide on using Ruby XMLRPC Client over HTTPS</a></p>
+</li><li>
+<p><a
+href="https://stackoverflow.com/questions/11918905/ruby-which-exception-is-best-to-handle-unset-environment-variables">An
+Answer on raising exception while some ENV is not set</a></p>
+</li><li>
+<p><a
+href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters/">Get
+IP Address of VIF</a></p>
+</li></ul>
+
+<h3 id="label-Documentations">Documentations<span><a href="#label-Documentations">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>TODO</p>
+</li></ul>
+
+<h3 id="label-Todo">Todo<span><a href="#label-Todo">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>Deal with the &#39;struct&#39; on &#39;last_booted_record&#39;</p>
+</li></ul>
+
+<h3 id="label-Footnote">Footnote<span><a href="#label-Footnote">&para;</a> <a href="#top">&uarr;</a></span></h3>
+<ul><li>
+<p>All Chinese (Traditional Script) and Japanese descriptions in this document
+are Machine-Translated Results. While Japanese results are interpreted
+afterwards, quality of Chinese descriptions are not assured.</p>
+</li></ul>
+</main>
+
+
+
+<footer id="validator-badges" role="contentinfo">
+  <p><a href="http://validator.w3.org/check/referer">Validate</a>
+  <p>Generated by <a href="https://rdoc.github.io/rdoc">RDoc</a> 5.0.0.
+  <p>Based on <a href="http://deveiate.org/projects/Darkfish-RDoc/">Darkfish</a> by <a href="http://deveiate.org">Michael Granger</a>.
+</footer>
+
