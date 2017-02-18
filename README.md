@@ -28,7 +28,7 @@ irb --noprompt
 require './xenapi.rb'
 
 # Login
-xenapi = XenApi.new
+xenapi = XenApi.new(ENV['XEN_SERVER_ADDR'], ENV['XEN_SERVER_PORT'], ENV['XEN_SERVER_USER'], ENV['XEN_SERVER_PASS'])
 
 # logout
 xenapi.logout

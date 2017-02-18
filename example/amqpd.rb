@@ -2,9 +2,8 @@
 
 require 'bunny'
 require 'json'
-require 'xenapi.rb'
-
-require_relative 'messages'
+require '../xenapi.rb'
+require '../messages.rb'
 
 # Class: Rabbit
 # A class to manage the DNS AMQP API
@@ -55,7 +54,7 @@ end
 class Processor
   # Process the Stuff.
   def self.process(body, msg_id)
-    xenapi = XenApi.new
+    xenapi = XenApi.new('server_path', nil, 'root', 'chnage_me')
     rabbit = Rabbit.new
     parsed = JSON.parse(body)
     payload = parsed['payload']
@@ -67,18 +66,16 @@ class Processor
       payload: case parsed['task']
                when 'get.vms'
                  xenapi.list_all_vm
+               when 'get.vm_templates'
+                 xenapi.vm_list_all_templates(true)
                when 'get.vm_detail'
-                 xenapi.get_vm_record(payload)
+                 xenapi.vm_get_record(payload)
                when 'get.vm_performance_data'
-                 xenapi.get_vm_metrics(payload)
+                 xenapi.vm_get_metrics(payload)
                when 'get.vm_runtime_data'
-                 xenapi.get_vm_guest_metrics(payload)
-               when 'get.vm_network'
-                 xenapi.get_vm_guest_metrics_network(payload)
-               when 'get.vm_network_ip4'
-                 xenapi.get_vm_guest_metrics_network(payload)['0/ip']
-               when 'get.vm_network_ip6'
-                 xenapi.get_vm_guest_metrics_network(payload)['0/ipv6/0']
+                 xenapi.vm_get_guest_metrics(payload)
+               when 'get.vm_networks'
+                 xenapi.vm_get_guest_metrics_network(payload)
                when 'set.vm_power_on'
                  xenapi.vm_power_on(payload)
                when 'set.vm_power_off'
@@ -91,6 +88,24 @@ class Processor
                  xenapi.vm_power_unpause(payload)
                when 'do.vm_clone'
                  xenapi.vm_clone(payload['src_vm'], payload['new_vm_name'])
+               when 'do.vm_clone_from_template_debian'
+                 xenapi.vm_clone_from_template(\
+                   payload['src_vm'], \
+                   payload['new_vm_name'], \
+                   '-- console=hvc0 ks=' + payload['ks_url'], \
+                   payload['repo_url'], \
+                   'debian', \
+                   payload['deb_distro_release']
+                 )
+               when 'do.vm_clone_from_template_rhel'
+                 xenapi.vm_clone_from_template(\
+                   payload['src_vm'], \
+                   payload['new_vm_name'], \
+                   'console=hvc0 utf8 nogpt noipv6 ks=' + payload['ks_url'], \
+                   payload['repo_url'], \
+                   'rhel', \
+                   nil
+                 )
                when 'do.vm_destroy'
                  xenapi.vm_destroy(payload)
                else

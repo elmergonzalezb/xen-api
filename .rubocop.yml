@@ -7,8 +7,8 @@
 # versions of RuboCop, may require this file to be generated again.
 #
 
-Metrics/LineLength:
-  Enabled: true
-
 Metrics:
+  Enabled: false
+
+Style/OptionalArguments:
   Enabled: false

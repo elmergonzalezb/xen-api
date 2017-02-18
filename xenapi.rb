@@ -4,20 +4,24 @@ require 'json'
 require 'nori'
 require 'openssl'
 require 'xmlrpc/client'
+require './messages.rb'
 
-require_relative 'messages'
-
+##
 # XenApi Session Manager
 class XenApi
-  # https://stackoverflow.com/questions/11918905/ruby-which-exception-is-best-to-handle-unset-environment-variables
-
-  # Config Client
-  def initialize(server_path, server_port, username, password)
+  ##
+  # Initalize the API by login to XenServer.
+  # Params:
+  # +server_path+:: Server Address
+  # +server_port+:: Server API Port, useful while oeprate over SSH
+  # +username+   :: Username, usually _root_
+  # +password+   :: Password, the password!
+  def initialize(server_path, server_port = 443, username = 'root', password)
     # This is where the connection is made
     # https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/
     connection_param = {
       host: server_path,
-      port: server_port.nil? || number?(server_port) ? server_port.to_i : 443,
+      port: server_port,
       use_ssl: true,
       path: '/'
     }
@@ -28,11 +32,13 @@ class XenApi
       @connect.call('session.login_with_password', username, password)['Value']
   end
 
-  # Invalidate Session Key
+  ##
+  # Logout
   def session_logout
     @connect.call('session.logout', @session)
   end
 
+  ##
   # Get All Virtual Machines
   # Using list instead to circumvent RuboCop
   def vm_list_all
@@ -48,18 +54,28 @@ class XenApi
     Messages.success_nodesc_with_payload(filtered)
   end
 
+  ##
   # Get all Templates
-  def vm_list_all_templates
+  # Params:
+  # +pv+:: Paravirtual Templates Only?
+  def vm_list_all_templates(pv = false)
     all_records = @connect.call('VM.get_all', @session)['Value']
     # Filter Away non-template (VM Instances + dom0)
-    all_templates = all_records.select do |vm_opaqueref|
-      check_vm_entity_is_template(vm_opaqueref)
+    all_templates = all_records.select do |tpl_opaqueref|
+      check_vm_entity_is_template(tpl_opaqueref)
+    end
+    if pv == true
+      all_templates = all_templates.select do |tpl_opaqueref|
+        check_vm_entity_is_paravirtual(tpl_opaqueref)
+      end
     end
     Messages.success_nodesc_with_payload(all_templates)
   end
 
+  ##
   # Get Virtual Machines Detail by OpaqueRef
-  # Translate all datetime to Human-readable stuffs
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_get_record(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -79,8 +95,10 @@ class XenApi
     end
   end
 
+  ##
   # Get Various Physical Details about the VM
-  # Also need to translate all datetime to Human-readable stuffs
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_get_metrics(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -96,8 +114,10 @@ class XenApi
     end
   end
 
+  ##
   # Get Various Runtime Detail about the VM
-  # Allllllso need to translate all datetime to Human-readable stuffs
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_get_guest_metrics(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -113,6 +133,8 @@ class XenApi
 
   # Get VM Network IPs
   # http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters/
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_get_guest_metrics_network(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -122,7 +144,10 @@ class XenApi
     end
   end
 
-  # Get VM Block Devices
+  ##
+  # Get Block Devices of the specified VM
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_get_vbds(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -131,7 +156,10 @@ class XenApi
     end
   end
 
-  # Power ON the Virtual Machines
+  ##
+  # Power ON the specified Virtual Machine
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_power_on(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -142,7 +170,10 @@ class XenApi
     end
   end
 
-  # Power OFF the Virtual Machines
+  ##
+  # Power OFF the specified Virtual Machine
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_power_off(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -152,7 +183,10 @@ class XenApi
     end
   end
 
-  # Power OFF the Virtual Machines
+  ##
+  # Reboot the specified Virtual Machines
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_power_reboot(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -162,7 +196,10 @@ class XenApi
     end
   end
 
-  # Suspend Virtual Machines
+  ##
+  # Suspend the specified Virtual Machine
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_power_pause(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -174,7 +211,10 @@ class XenApi
     end
   end
 
-  # Wake the Virtual Machines
+  ##
+  # Wake up the specified Virtual Machine
+  # Params:
+  # +vm_opaqueref+:: VM Reference
   def vm_power_unpause(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -187,11 +227,15 @@ class XenApi
     end
   end
 
+  ##
   # Clone the target Virtual Machine
-  # Returns the record of new vm
-  # param: old_vm_opaqueref String  VM Identifier
-  # param: new_vm_name      String  Name of new VM
+  # Returns the reference point of new vm
   # APIDoc P111, Copy tends to be more guaranteed.
+  # Params:
+  # +old_vm_opaqueref+:: Source VM Identifier
+  # +new_vm_name+     :: Name of the new VM
+  # Returns:
+  # the record of new vm
   def vm_clone(old_vm_opaqueref, new_vm_name)
     if check_vm_entity_validity(old_vm_opaqueref) \
       || new_vm_name.nil? \
@@ -208,8 +252,18 @@ class XenApi
     end
   end
 
-  # Clone Template
+  ##
+  # Clone from PV Template
   # TODO: Test Required
+  # Params:
+  # +template_vm_opaqueref+:: Source Template Identifier
+  # +new_vm_name+          :: Name of the new VM
+  # +pv_boot_param+        :: Boot Command Line
+  # +repo_url+             :: URL of the Distro Repo
+  # +distro+               :: Distro Family, acceptable values are _debian_ and _rhel_
+  # +distro_release+       :: Release Name of the specified Debian/Ubuntu Release. example: _jessie_(Debian 8), _trusty_(Ubuntu 14.04)
+  # Returns:
+  # the record of new vm
   def vm_clone_from_template(template_vm_opaqueref, \
                              new_vm_name, pv_boot_param, \
                              repo_url, distro, distro_release)
@@ -234,7 +288,7 @@ class XenApi
       # Step 2 : Set repository URL, important for install
       #          Always skip step if previous step has error
       #     2.1: Handling Debian-based
-      if distro == 'debian' || distro == 'ubuntu'
+      if distro == 'debian'
         s = vm_rm_other_config(result, 'debian-release')
         s = vm_rm_other_config(result, 'install-repository') \
             unless s['Status'] != 'Success'
@@ -243,11 +297,11 @@ class XenApi
             unless s['Status'] != 'Success'
         s = vm_add_other_config(result, 'install-repository', repo_url) \
             unless s['Status'] != 'Success'
-      #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
-      elsif distro == 'el' || distro == 'fc'
+        #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
+      elsif distro == 'rhel'
         s = vm_rm_other_config(result, 'install-repository')
         s = vm_add_other_config(result, 'install-repository', repo_url) \
-            unless s['Status'] != 'Success'
+          unless s['Status'] != 'Success'
       # Other distro is HVM so we ignore it.
       else
         Messages.error_unsupported
@@ -255,13 +309,16 @@ class XenApi
       if s['Status'] == 'Error'
         Messages.error_unknown(s['ErrorDescription'])
       else
+        # callback the new vm OpaqueRef
         Messages.success_nodesc_with_payload(result)
       end
     end
   end
 
+  ##
   # Erase the target Virtual Machine, along with related VDIs
-  # Returns the record of new vm
+  # Params:
+  # +old_vm_opaqueref+:: VM Identifier
   def vm_destroy(old_vm_opaqueref)
     if check_vm_entity_validity(old_vm_opaqueref)
       Messages.error_not_permitted
@@ -287,7 +344,12 @@ class XenApi
     end
   end
 
+  ##
   # Set "other config", useful for official PV Instance template
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +key+         :: Config Key
+  # +value+       :: Config Value
   def vm_add_other_config(vm_opaqueref, key, value)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -296,7 +358,11 @@ class XenApi
     end
   end
 
-  # unset "other config", useful for official PV Instance template
+  ##
+  # Unset "other config", useful for official PV Instance template
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +key+         :: Config Key
   def vm_rm_other_config(vm_opaqueref, key)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -305,7 +371,10 @@ class XenApi
     end
   end
 
-  # get other_config field
+  ##
+  # Get other_config field.
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
   def vm_get_other_config(vm_opaqueref)
     record = vm_get_record(vm_opaqueref)
     if record['Status'] != 'Success'
@@ -315,7 +384,11 @@ class XenApi
     end
   end
 
-  # set tags
+  ##
+  # Add a tag to the specified VM
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +tag+         :: Tag
   def vm_add_tag(vm_opaqueref, tag)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -324,7 +397,11 @@ class XenApi
     end
   end
 
-  # unset tags
+  ##
+  # Unset VM tags
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +tag+         :: Tag
   def vm_rm_tag(vm_opaqueref, tag)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -333,7 +410,13 @@ class XenApi
     end
   end
 
-  # get tags
+  ##
+  # Get VM tags
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +tag+         :: Tag
+  # Returns:
+  # Tags
   def vm_get_tags(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -342,8 +425,13 @@ class XenApi
     end
   end
 
-  # search by tag
-  def search_vm_by_tag(tag)
+  ##
+  # search VM by tag
+  # Params:
+  # +tag+         :: Tag
+  # Returns:
+  # Matched VM
+  def vm_search_by_tag(tag)
     all_vm = list_all_vm
     all_vm.select do |vm_opaqueref|
       vm_get_tags(vm_opaqueref)['Value'].include?(tag)
@@ -354,22 +442,32 @@ class XenApi
   # Collection: Task
   #---
 
+  ##
   # All Task
   def list_task_all_records
     @connect.call('task.get_all_records')
   end
 
-  # Task Record
+  ##
+  # Get Task Record
+  # Params:
+  # +task_opaqueref+:: Task Reference
   def get_task_record(task_opaqueref)
     @connect.call('task.get_record', @session, task_opaqueref)
   end
 
+  ##
   # Task Status
+  # Params:
+  # +task_opaqueref+:: Task Reference
   def get_task_status(task_opaqueref)
-    @connect.call('task.get_status', @session, task_opaqueref)['Value']
+    @connect.call('task.get_status', @session, task_opaqueref)
   end
 
+  ##
   # Task Result
+  # Params:
+  # +task_opaqueref+:: Task Reference
   def get_task_result(task_opaqueref)
     callback = @connect.call('task.get_result', @session, task_opaqueref)
     if callback['Status'] != success
@@ -379,12 +477,18 @@ class XenApi
     end
   end
 
+  ##
   # Task Errors
+  # Params:
+  # +task_opaqueref+:: Task Reference
   def get_task_error(task_opaqueref)
     @connect.call('task.get_error_info', @session, task_opaqueref)
   end
 
+  ##
   # Destroy a task, important after working on a Async Task
+  # Params:
+  # +task_opaqueref+:: Task Reference
   def task_destroy(task_opaqueref)
     @connect.call('task.destroy', @session, task_opaqueref)
   end
@@ -393,6 +497,7 @@ class XenApi
   # Collection: VDI
   #---
 
+  ##
   # Get a list of all VDI
   def list_vdi
     all_records = \
@@ -408,7 +513,8 @@ class XenApi
     Messages.success_nodesc_with_payload(filtered)
   end
 
-  # Get a list of all VDI
+  ##
+  # Get a list of all Snapshot VDI
   def list_vdi_snapshot
     all_records = \
       @connect.call('VDI.get_all', @session)['Value']
@@ -419,6 +525,7 @@ class XenApi
     Messages.success_nodesc_with_payload(filtered)
   end
 
+  ##
   # Get XS-TOOLS VDI
   def list_vdi_tools
     all_records = \
@@ -430,7 +537,10 @@ class XenApi
     Messages.success_nodesc_with_payload(filtered)
   end
 
+  ##
   # Get detail of the specified VDI
+  # Params:
+  # +vdi_opaqueref+:: VDI Reference
   def get_vdi_record(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
       Messages.error_not_permitted
@@ -439,7 +549,10 @@ class XenApi
     end
   end
 
+  ##
   # Destroy the specified VDI
+  # Params:
+  # +vdi_opaqueref+:: VDI Reference
   def destroy_vdi(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
       Messages.error_not_permitted
@@ -449,8 +562,63 @@ class XenApi
     end
   end
 
+  ##
+  # Add a tag to the specified VDI
+  # Params:
+  # +vdi_opaqueref+:: VDI Identifier
+  # +tag+          :: Tag
+  def vdi_add_tag(vdi_opaqueref, tag)
+    if check_vdi_entity_validity(vdi_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VDI.add_tags', @session, vdi_opaqueref, tag)
+    end
+  end
+
+  ##
+  # Unset VDI tags
+  # Params:
+  # +vdi_opaqueref+:: VDI Identifier
+  # +tag+          :: Tag
+  def vdi_rm_tag(vdi_opaqueref, tag)
+    if check_vdi_entity_validity(vdi_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VDI.remove_tags', @session, vdi_opaqueref, tag)
+    end
+  end
+
+  ##
+  # get VDI tags
+  # Params:
+  # +vdi_opaqueref+:: VDI Identifier
+  # +tag+          :: Tag
+  # Returns:
+  # Tags
+  def vdi_get_tags(vdi_opaqueref)
+    if check_vdi_entity_validity(vdi_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VDI.get_tags', @session, vdi_opaqueref, tag)
+    end
+  end
+
+  ##
+  # search VDI by tag
+  # Params:
+  # +tag+         :: Tag
+  # Returns:
+  # Matched VM
+  def vdi_search_by_tag(tag)
+    all_vdi = list_vdi
+    all_vdi.select do |vdi_opaqueref|
+      vdi_get_tags(vdi_opaqueref)['Value'].include?(tag)
+    end
+  end
+
   #---
   # Collection: VBD
+  # TODO: Documentation, but usually VBD is lessly used
   #---
 
   def vbd_list_
@@ -461,6 +629,27 @@ class XenApi
     @connect.call('VBD.get_record', @session, vbd_opaqueref)
   end
 
+  ##
+  # Create a Virtual Block Device (Plugged Instantly)
+  # Params:
+  # +vm_opaqueref+:: VM Reference
+  # +vdi_opaqueref+:: VDI Reference
+  # +device_slot+:: VBD Device place
+  def vbd_create(vm_opaqueref, vdi_opaqueref, device_slot)
+    vbd_object = {
+      VM: vm_opaqueref,
+      VDI: vdi_opaqueref,
+      userdevice: device_slot,
+      bootable: false,
+      mode: 'RW',
+      type: 'Disk',
+      empty: false,
+      qos_algorithm_type: '', # TODO!
+      qos_algorithm_params: '' # TODO!
+    }
+    @connect.call('VBD.create', @session, vbd_object)
+  end
+
   # Private Scope is intended for wrapping non-official and refactored functions
 
   private
@@ -469,22 +658,26 @@ class XenApi
   # Pluggable FIlters
   #---
 
+  ##
   # Filter: Check the requested VM entity is the dom0 or not.
   def check_vm_entity_is_dom0(vm_opaqueref)
     @connect.call('VM.get_is_control_domain', @session, vm_opaqueref)['Value']
   end
 
+  ##
   # Filter: Check the requested VM entity is an Template or not.
   def check_vm_entity_is_template(vm_opaqueref)
     @connect.call('VM.get_is_a_template', @session, vm_opaqueref)['Value']
   end
 
+  ##
   # Filter: Check VM Existency
   def check_vm_entity_is_nonexist(vm_opaqueref)
     result = @connect.call('VM.get_uuid', @session, vm_opaqueref)['Status']
     result == 'Success' ? false : true
   end
 
+  ##
   # Filter: Check VM IS PV
   def check_vm_entity_is_paravirtual(vm_opaqueref)
     result = @connect.call('VM.get_PV_bootloader', @session, vm_opaqueref)['Value']
@@ -492,16 +685,19 @@ class XenApi
     result == 'pygrub' ? true : false
   end
 
+  ##
   # Filter: Ignore XS-Tools ISO
   def check_vdi_is_xs_iso(vdi_opaqueref)
     @connect.call('VDI.get_is_tools_iso', @session, vdi_opaqueref)['Value']
   end
 
+  ##
   # Filter: Ignore Snapshots
   def check_vdi_is_a_snapshot(vdi_opaqueref)
     @connect.call('VDI.get_is_a_snapshot', @session, vdi_opaqueref)['Value']
   end
 
+  ##
   # Filter: Check VDI Existency
   def check_vdi_entity_is_nonexist(vdi_opaqueref)
     result = @connect.call('VDI.get_uuid', @session, vdi_opaqueref)['Status']
@@ -512,6 +708,7 @@ class XenApi
   # Aggregated Filters
   #---
 
+  ##
   # Refactor: Aggregated Validity Check
   def check_vm_entity_validity(vm_opaqueref)
     check_vm_entity_is_nonexist(vm_opaqueref) \
@@ -521,6 +718,7 @@ class XenApi
     || vm_opaqueref.nil?
   end
 
+  ##
   # Refactor: Aggregated VDI Validity Check
   def check_vdi_entity_validity(vdi_opaqueref)
     check_vdi_entity_is_nonexist(vdi_opaqueref) \
@@ -534,6 +732,7 @@ class XenApi
   # Tools
   #---
 
+  ##
   # Refactor: AsyncTask Task Manager
   # It would poll the server continuously for task status
   def async_task_manager(task_opaqueref, has_payload)
@@ -560,6 +759,7 @@ class XenApi
     end
   end
 
+  ##
   # Parse the last boot record to Hash.
   # You may say why don't I just put JSON.parse.
   # The main problem is some VM that uses maybe older XS Guest Additions
@@ -577,6 +777,7 @@ class XenApi
     Messages.error_unsupported
   end
 
+  ##
   # XML Parser, important
   # https://github.com/savonrb/nori
   def xml_parse(raw_xml)
