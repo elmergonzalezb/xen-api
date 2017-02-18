@@ -24,53 +24,53 @@ class Messages
   # Bad Messages
   #---
   def self.error_undefined
-    { status: 'Error', description: 'ACTION_NOT_DEFINED' }
+    { 'Status' => 'Error', 'Description' => 'ACTION_NOT_DEFINED' }
   end
 
   def self.error_not_permitted
-    { status: 'Error', description: 'ACTION_NOT_PERMITTED' }
+    { 'Status' => 'Error', 'Description' => 'ACTION_NOT_PERMITTED' }
   end
 
   def self.error_vm_bad_power_state
-    { status: 'Error', description: 'VM_BAD_POWER_STATE' }
+    { 'Status' => 'Error', 'Description' => 'VM_BAD_POWER_STATE' }
   end
 
   def self.error_try_later
-    { status: 'Error', description: 'OTHER_OPERATION_IN_PROGRESS' }
+    { 'Status' => 'Error', 'Description' => 'OTHER_OPERATION_IN_PROGRESS' }
   end
 
   def self.error_unsupported
-    { status: 'Error', description: 'UNSUPPORTED' }
+    { 'Status' => 'Error', 'Description' => 'UNSUPPORTED' }
   end
 
   def self.error_unknown(error_string)
-    { status: 'Error', description: error_string }
+    { 'Status' => 'Error', 'Description' => error_string }
   end
 
   def self.error_unknown_with_payload(error_string, payload)
-    { status: 'Error', description: error_string, payload: payload }
+    { 'Status' => 'Error', 'Description' => error_string, 'Value' => payload }
   end
 
   def self.error_disk_full
-    { status: 'Error', description: 'DISK_FULL_CONTACT_ADMINISTRATOR' }
+    { 'Status' => 'Error', 'Description' => 'DISK_FULL_CONTACT_ADMINISTRATOR' }
   end
 
   #---
   # Good Messages
   #---
   def self.success_nodesc
-    { status: 'Success', description: 'NO_DESCRIPTION' }
+    { 'Status' => 'Success', 'Description' => 'NO_DESCRIPTION' }
   end
 
   def self.success_nodesc_with_payload(payload)
-    { status: 'Success', description: 'NO_DESCRIPTION', payload: payload }
+    { 'Status' => 'Success', 'Description' => 'NO_DESCRIPTION', 'Value' => payload }
   end
 
   def self.success_custom_message(description)
-    { status: 'Success', description: description, payload: payload }
+    { 'Status' => 'Success', 'Description' => description, 'Value' => payload }
   end
 
   def self.success_custom_message_with_payload(description, payload)
-    { status: 'Success', description: description, payload: payload }
+    { 'Status' => 'Success', 'Description' => description, 'Value' => payload }
   end
 end
