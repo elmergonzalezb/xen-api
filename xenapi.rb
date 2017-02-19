@@ -96,6 +96,23 @@ class XenApi
   end
 
   ##
+  # Get Virtual Machines Detail by OpaqueRef
+  # Params:
+  # +vm_opaqueref+:: VM Reference
+  def vm_get_template_record(vm_opaqueref)
+    if check_vm_entity_is_nonexist(vm_opaqueref) \
+      || check_vm_entity_is_dom0(vm_opaqueref) \
+      || vm_opaqueref == '' \
+      || vm_opaqueref.nil?
+      Messages.error_not_permitted
+    else
+      record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
+      # Output. return is redundant in Ruby World.
+      Messages.success_nodesc_with_payload(record)
+    end
+  end
+
+  ##
   # Get Various Physical Details about the VM
   # Params:
   # +vm_opaqueref+:: VM Reference
