@@ -28,8 +28,7 @@ class XenApi
     @connect = XMLRPC::Client.new_from_hash(connection_param)
     # This is the SSL Check Bypassing Mechanism
     @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-    @session = \
-      @connect.call('session.login_with_password', username, password)['Value']
+    @session = @connect.call('session.login_with_password', username, password)['Value']
   end
 
   ##
@@ -98,8 +97,7 @@ class XenApi
       end
       # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
       #    the JSON generator
-      record['last_booted_record'] = \
-        parse_last_boot_record(record['last_booted_record'])
+      record['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
       # 3. Parse Recommendations into Hash, using oga
       record['recommendations'] = xml_parse(record['recommendations'])
       # Output. return is redundant in Ruby World.
@@ -112,10 +110,7 @@ class XenApi
   # Params:
   # +vm_opaqueref+:: VM Reference
   def vm_get_template_record(vm_opaqueref)
-    if check_vm_entity_is_nonexist(vm_opaqueref) \
-      || check_vm_entity_is_dom0(vm_opaqueref) \
-      || vm_opaqueref == '' \
-      || vm_opaqueref.nil?
+    if check_vm_entity_is_nonexist(vm_opaqueref) || check_vm_entity_is_dom0(vm_opaqueref) || vm_opaqueref == '' || vm_opaqueref.nil?
       Messages.error_not_permitted
     else
       record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
@@ -222,8 +217,7 @@ class XenApi
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
     else
-      task_token = \
-        @connect.call('Async.VM.start', @session, vm_opaqueref, false, false)
+      task_token = @connect.call('Async.VM.start', @session, vm_opaqueref, false, false)
       async_task_manager(task_token, false)
     end
   end
@@ -279,8 +273,7 @@ class XenApi
     else
       # API Manual P116-117
       # void resume (session_id s, VM ref vm, bool start_paused, bool force)
-      task_token = \
-        @connect.call('Async.VM.resume', @session, vm_opaqueref, false, false)
+      task_token = @connect.call('Async.VM.resume', @session, vm_opaqueref, false, false)
       async_task_manager(task_token, false)
     end
   end
@@ -295,16 +288,11 @@ class XenApi
   # Returns:
   # the record of new vm
   def vm_clone(old_vm_opaqueref, new_vm_name)
-    if check_vm_entity_validity(old_vm_opaqueref) \
-      || new_vm_name.nil? \
-      || new_vm_name == ''
-
+    if check_vm_entity_validity(old_vm_opaqueref) || new_vm_name.nil? || new_vm_name == ''
       Messages.error_not_permitted
     else
       # The NULL Reference is required to fulfill the requirement.
-      task_token = \
-        @connect.call('Async.VM.copy', @session, old_vm_opaqueref, \
-                      new_vm_name, 'OpaqueRef:NULL')
+      task_token = @connect.call('Async.VM.copy', @session, old_vm_opaqueref, new_vm_name, 'OpaqueRef:NULL')
       result = async_task_manager(task_token, true)
       if result.key?('Status') && result['Status'] == 'Error'
         result
@@ -318,7 +306,7 @@ class XenApi
   # Clone from PV Template
   # TODO: Test Required
   # Params:
-  # +template_vm_opaqueref+:: Source Template Identifier
+  # +vm_tpl_opaqueref+:: Source Template Identifier
   # +new_vm_name+          :: Name of the new VM
   # +pv_boot_param+        :: Boot Command Line
   # +repo_url+             :: URL of the Distro Repo
@@ -326,23 +314,13 @@ class XenApi
   # +distro_release+       :: Release Name of the specified Debian/Ubuntu Release. example: _jessie_(Debian 8), _trusty_(Ubuntu 14.04)
   # Returns:
   # the record of new vm
-  def vm_clone_from_template(template_vm_opaqueref, \
-                             new_vm_name, pv_boot_param, \
-                             repo_url, distro, distro_release, net_opaqueref)
-    if check_vm_entity_is_nonexist(template_vm_opaqueref) \
-      || check_vm_entity_is_dom0(template_vm_opaqueref) \
-      || !check_vm_entity_is_template(template_vm_opaqueref) \
-      || !check_vm_entity_is_paravirtual(template_vm_opaqueref) \
-      || new_vm_name.nil? \
-      || new_vm_name == ''
-
+  def vm_clone_from_template(vm_tpl_opaqueref, new_vm_name, pv_boot_param, repo_url, distro, distro_release, net_opaqueref)
+    if check_vm_template_validity(vm_tpl_opaqueref) || new_vm_name.nil? || new_vm_name == ''
       Messages.error_not_permitted
     else
       # Step0.1: Copy from template.
       # The NULL Reference is required to fulfill the params requirement.
-      task_token = \
-        @connect.call('Async.VM.copy', @session, template_vm_opaqueref, \
-                      new_vm_name, 'OpaqueRef:NULL')
+      task_token = @connect.call('Async.VM.copy', @session, vm_tpl_opaqueref, new_vm_name, 'OpaqueRef:NULL')
       # Step0.2: get new vm reference point
       result = async_task_manager(task_token, true)['value']
       # Step 1 : Set boot paramaters, For configuring the kickstart definition
@@ -353,8 +331,7 @@ class XenApi
       if distro == 'debian'
         # Set New Value
         s = vm_set_other_config(result, 'debian-release', distro_release)
-        s = vm_set_other_config(result, 'install-repository', repo_url) \
-            unless s['Status'] != 'Success'
+        s = vm_set_other_config(result, 'install-repository', repo_url) unless s['Status'] != 'Success'
         #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
       elsif distro == 'rhel' || distro == 'sle'
         s = vm_set_other_config(result, 'install-repository', repo_url)
@@ -614,8 +591,7 @@ class XenApi
   # Get a list of all VDI
   # +no_iso_cd+:: Ignore ISO file?
   def vdi_list(no_iso_cd)
-    all_records = \
-      @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)['Value']
     # Filter Away Snapshots
     no_snapshot = all_records.select do |vdi_opaqueref|
       !check_vdi_is_a_snapshot(vdi_opaqueref)
@@ -635,8 +611,7 @@ class XenApi
   ##
   # Get a list of all Snapshot VDI
   def vdi_list_snapshot
-    all_records = \
-      @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)['Value']
     # Filter Away Snapshots
     filtered = all_records.select do |vdi_opaqueref|
       check_vdi_is_a_snapshot(vdi_opaqueref)
@@ -647,8 +622,7 @@ class XenApi
   ##
   # Get XS-TOOLS VDI
   def vdi_list_tools
-    all_records = \
-      @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)['Value']
     # Filter Away all butXS-Tools
     filtered = all_records.select do |vdi_opaqueref|
       check_vdi_is_xs_iso(vdi_opaqueref)
@@ -998,21 +972,19 @@ class XenApi
   ##
   # Refactor: Aggregated Validity Check
   def check_vm_entity_validity(vm_opaqueref)
-    check_vm_entity_is_nonexist(vm_opaqueref) \
-    || check_vm_entity_is_dom0(vm_opaqueref) \
-    || check_vm_entity_is_template(vm_opaqueref) \
-    || vm_opaqueref == '' \
-    || vm_opaqueref.nil?
+    check_vm_entity_is_nonexist(vm_opaqueref) || check_vm_entity_is_dom0(vm_opaqueref) || check_vm_entity_is_template(vm_opaqueref) || vm_opaqueref == '' || vm_opaqueref.nil?
+  end
+
+  ##
+  # Refactor: Check Template Validity
+  def check_vm_template_validity(vm_tpl_opaqueref)
+    check_vm_entity_is_nonexist(vm_tpl_opaqueref) || check_vm_entity_is_dom0(vm_tpl_opaqueref) || !check_vm_entity_is_template(vm_tpl_opaqueref) || !check_vm_entity_is_paravirtual(vm_tpl_opaqueref) || vm_tpl_opaqueref == '' || vm_tpl_opaqueref.nil?
   end
 
   ##
   # Refactor: Aggregated VDI Validity Check
   def check_vdi_entity_validity(vdi_opaqueref)
-    check_vdi_entity_is_nonexist(vdi_opaqueref) \
-    || check_vdi_is_a_snapshot(vdi_opaqueref) \
-    || check_vdi_is_xs_iso(vdi_opaqueref) \
-    || vdi_opaqueref == '' \
-    || vdi_opaqueref.nil?
+    check_vdi_entity_is_nonexist(vdi_opaqueref) || check_vdi_is_a_snapshot(vdi_opaqueref) || check_vdi_is_xs_iso(vdi_opaqueref) || vdi_opaqueref == '' || vdi_opaqueref.nil?
   end
 
   #---
