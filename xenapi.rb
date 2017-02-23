@@ -203,6 +203,18 @@ class XenApi
   end
 
   ##
+  # Get Virtual Network Interfaces (VIFs) of the specified VM
+  # Params:
+  # +vm_opaqueref+:: VM Reference
+  def vm_get_vifs(vm_opaqueref)
+    if check_vm_entity_validity(vm_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VM.get_VIFs', @session, vm_opaqueref)
+    end
+  end
+
+  ##
   # Power ON the specified Virtual Machine
   # Params:
   # +vm_opaqueref+:: VM Reference
@@ -339,19 +351,13 @@ class XenApi
       #          Always skip step if previous step has error
       #     2.1: Handling Debian-based
       if distro == 'debian'
-        s = vm_rm_other_config(result, 'debian-release')
-        s = vm_rm_other_config(result, 'install-repository') \
-            unless s['Status'] != 'Success'
         # Set New Value
-        s = vm_add_other_config(result, 'debian-release', distro_release) \
-            unless s['Status'] != 'Success'
-        s = vm_add_other_config(result, 'install-repository', repo_url) \
+        s = vm_set_other_config(result, 'debian-release', distro_release)
+        s = vm_set_other_config(result, 'install-repository', repo_url) \
             unless s['Status'] != 'Success'
         #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
       elsif distro == 'rhel' || distro == 'sle'
-        s = vm_rm_other_config(result, 'install-repository')
-        s = vm_add_other_config(result, 'install-repository', repo_url) \
-          unless s['Status'] != 'Success'
+        s = vm_set_other_config(result, 'install-repository', repo_url)
       # Other distro is HVM so we ignore it.
       else
         Messages.error_unsupported
@@ -400,7 +406,7 @@ class XenApi
   end
 
   ##
-  # Set "other config", useful for official PV Instance template
+  # Add "other config", useful for official PV Instance template
   # Params:
   # +vm_opaqueref+:: VM Identifier
   # +key+         :: Config Key
@@ -436,6 +442,20 @@ class XenApi
       record
     else
       Messages.success_nodesc_with_payload(record['Value']['other_config'])
+    end
+  end
+
+  ##
+  # Set "other config", useful for official PV Instance template
+  # Params:
+  # +vm_opaqueref+:: VM Identifier
+  # +key+         :: Config Key
+  # +value+       :: Config Value
+  def vm_set_other_config(vm_opaqueref, key, value)
+    if check_vm_entity_validity(vm_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VM.add_to_other_config', @session, vm_opaqueref, key.to_s => value.to_s)
     end
   end
 
