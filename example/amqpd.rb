@@ -95,7 +95,8 @@ class Processor
                    '-- console=hvc0 ks=' + payload['ks_url'], \
                    payload['repo_url'], \
                    'debian', \
-                   payload['deb_distro_release']
+                   payload['deb_distro_release'], \
+                   payload['network_ref']
                  )
                when 'do.vm_clone_from_template_rhel'
                  xenapi.vm_clone_from_template(\
@@ -104,7 +105,18 @@ class Processor
                    'console=hvc0 utf8 nogpt noipv6 ks=' + payload['ks_url'], \
                    payload['repo_url'], \
                    'rhel', \
-                   nil
+                   nil, \
+                   payload['network_ref']
+                 )
+               when 'do.vm_clone_from_template_sle'
+                 xenapi.vm_clone_from_template(\
+                   payload['src_vm'], \
+                   payload['new_vm_name'], \
+                   'console=xvc0 xencons=xvc autoyast2=' + payload['ks_url'], \
+                   payload['repo_url'], \
+                   'sle', \
+                   nil, \
+                   payload['network_ref']
                  )
                when 'do.vm_destroy'
                  xenapi.vm_destroy(payload)

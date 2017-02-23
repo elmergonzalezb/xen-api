@@ -39,6 +39,14 @@ class XenApi
   end
 
   ##
+  # logout
+  #
+  # Alias to session_logout
+  def logout
+    session_logout
+  end
+
+  ##
   # Get All Virtual Machines
   # Using list instead to circumvent RuboCop
   def vm_list_all
@@ -58,7 +66,7 @@ class XenApi
   # Get all Templates
   # Params:
   # +pv+:: Paravirtual Templates Only?
-  def vm_list_all_templates(pv = false)
+  def vm_list_all_templates(pv)
     all_records = @connect.call('VM.get_all', @session)['Value']
     # Filter Away non-template (VM Instances + dom0)
     all_templates = all_records.select do |tpl_opaqueref|
@@ -83,7 +91,11 @@ class XenApi
       record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
       # Post processing
       # 1. Decode Time Object to Human-readable
-      record['snapshot_time'] = record['snapshot_time'].to_time.to_s
+      begin
+        record['snapshot_time'] = record['snapshot_time'].to_time.to_s
+      rescue NoMethodError
+        true
+      end
       # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
       #    the JSON generator
       record['last_booted_record'] = \
@@ -107,6 +119,13 @@ class XenApi
       Messages.error_not_permitted
     else
       record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
+      record['recommendations'] = xml_parse(record['recommendations'])
+      record['other_config']['disks'] = xml_parse(record['other_config']['disks'])
+      begin
+        record['snapshot_time'] = record['snapshot_time'].to_time.to_s
+      rescue NoMethodError
+        record['snapshot_time'] = nil
+      end
       # Output. return is redundant in Ruby World.
       Messages.success_nodesc_with_payload(record)
     end
@@ -123,9 +142,15 @@ class XenApi
       ref = @connect.call('VM.get_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
-      dat['Value']['start_time']   = dat['Value']['last_updated'].to_time.to_s
-      dat['Value']['install_time'] = dat['Value']['last_updated'].to_time.to_s
-      dat['Value']['last_updated'] = dat['Value']['last_updated'].to_time.to_s
+      begin
+        dat['Value']['start_time']   = dat['Value']['last_updated'].to_time.to_s
+        dat['Value']['install_time'] = dat['Value']['last_updated'].to_time.to_s
+        dat['Value']['last_updated'] = dat['Value']['last_updated'].to_time.to_s
+      rescue NoMethodError
+        dat['Value']['start_time']   = nil
+        dat['Value']['install_time'] = nil
+        dat['Value']['last_updated'] = nil
+      end
       # Output. return is redundant in Ruby World.
       dat
     end
@@ -142,7 +167,11 @@ class XenApi
       ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_guest_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
-      dat['Value']['last_updated'] = dat['last_updated'].to_time.to_s
+      begin
+        dat['Value']['last_updated'] = dat['last_updated'].to_time.to_s
+      rescue NoMethodError
+        dat['Value']['last_updated'] = nil
+      end
       # Output. return is redundant in Ruby World.
       dat
     end
@@ -265,7 +294,11 @@ class XenApi
         @connect.call('Async.VM.copy', @session, old_vm_opaqueref, \
                       new_vm_name, 'OpaqueRef:NULL')
       result = async_task_manager(task_token, true)
-      Messages.success_nodesc_with_payload(result['value'])
+      if result.key?('Status') && result['Status'] == 'Error'
+        result
+      else
+        Messages.success_nodesc_with_payload(result['value'])
+      end
     end
   end
 
@@ -283,7 +316,7 @@ class XenApi
   # the record of new vm
   def vm_clone_from_template(template_vm_opaqueref, \
                              new_vm_name, pv_boot_param, \
-                             repo_url, distro, distro_release)
+                             repo_url, distro, distro_release, net_opaqueref)
     if check_vm_entity_is_nonexist(template_vm_opaqueref) \
       || check_vm_entity_is_dom0(template_vm_opaqueref) \
       || !check_vm_entity_is_template(template_vm_opaqueref) \
@@ -315,7 +348,7 @@ class XenApi
         s = vm_add_other_config(result, 'install-repository', repo_url) \
             unless s['Status'] != 'Success'
         #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
-      elsif distro == 'rhel'
+      elsif distro == 'rhel' || distro == 'sle'
         s = vm_rm_other_config(result, 'install-repository')
         s = vm_add_other_config(result, 'install-repository', repo_url) \
           unless s['Status'] != 'Success'
@@ -326,8 +359,13 @@ class XenApi
       if s['Status'] == 'Error'
         Messages.error_unknown(s['ErrorDescription'])
       else
-        # callback the new vm OpaqueRef
-        Messages.success_nodesc_with_payload(result)
+        s = vif_create(result, net_opaqueref, 0)
+        if s['Status'] == 'Error'
+          Messages.error_unknown(s['ErrorDescription'])
+        else
+          # callback the new vm OpaqueRef
+          Messages.success_nodesc_with_payload(result)
+        end
       end
     end
   end
@@ -353,7 +391,7 @@ class XenApi
       result = async_task_manager(task_token, false)
       if result['Status'] == 'Success'
         # Delete VM OK => Cleanup residue: /dev/xvda VDI
-        destroy_vdi(xvda_id)
+        vdi_destroy(xvda_id)
       else
         # Prompt Error on Deleting VM
         result
@@ -438,7 +476,7 @@ class XenApi
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
     else
-      @connect.call('VM.get_tags', @session, vm_opaqueref, tag)
+      @connect.call('VM.get_tags', @session, vm_opaqueref)
     end
   end
 
@@ -449,12 +487,47 @@ class XenApi
   # Returns:
   # Matched VM
   def vm_search_by_tag(tag)
-    all_vm = list_all_vm
-    all_vm.select do |vm_opaqueref|
+    all_vm = vm_list_all
+    all_vm['Value'].select do |vm_opaqueref|
       vm_get_tags(vm_opaqueref)['Value'].include?(tag)
     end
   end
 
+  ##
+  # Set VM Name
+  # +vm_opaqueref+:: VM OpaqueRef
+  # +vm_name+:: VM Name
+  def vm_set_name(vm_opaqueref, vm_name)
+    if check_vm_entity_validity(vm_opaqueref)
+      Messages.error_not_permitted
+    else
+      @connect.call('VM.set_name_label', @session, vm_opaqueref, vm_name)
+    end
+  end
+
+  ##
+  # Set VM Memory Size
+  # +vm_opaqueref+:: VM OpaqueRef
+  # +max_size+:: Memory Capacity
+  # +min_size+:: Memory Baseline
+  # ---
+  # XMLRPC Library only accepts 32-bit SignedInt
+  # 2147483648 (2GB actual value) will cause
+  # RuntimeError: Integer is too big! Must be signed 32-bit integer!
+  # WHAT THE HELL.
+  # ---
+  def vm_set_max_ram(vm_opaqueref, max_size)
+    if check_vm_entity_validity(vm_opaqueref)
+      Messages.error_not_permitted
+    else
+      begin
+        @connect.call('VM.set_memory_static_max', @session, vm_opaqueref, max_size.to_i)
+        @connect.call('VM.set_memory_dynamic_max', @session, vm_opaqueref, max_size.to_i)
+      rescue RuntimeError
+        Messages.error_unsupported
+      end
+    end
+  end
   #---
   # Collection: Task
   #---
@@ -462,14 +535,14 @@ class XenApi
   ##
   # All Task
   def list_task_all_records
-    @connect.call('task.get_all_records')
+    @connect.call('task.get_all_records', @session)
   end
 
   ##
   # Get Task Record
   # Params:
   # +task_opaqueref+:: Task Reference
-  def get_task_record(task_opaqueref)
+  def task_get_record(task_opaqueref)
     @connect.call('task.get_record', @session, task_opaqueref)
   end
 
@@ -477,7 +550,7 @@ class XenApi
   # Task Status
   # Params:
   # +task_opaqueref+:: Task Reference
-  def get_task_status(task_opaqueref)
+  def task_get_status(task_opaqueref)
     @connect.call('task.get_status', @session, task_opaqueref)
   end
 
@@ -485,20 +558,15 @@ class XenApi
   # Task Result
   # Params:
   # +task_opaqueref+:: Task Reference
-  def get_task_result(task_opaqueref)
-    callback = @connect.call('task.get_result', @session, task_opaqueref)
-    if callback['Status'] != success
-      callback
-    else
-      Messages.success_nodesc_with_payload(xml_parse(callback['Value']))
-    end
+  def task_get_result(task_opaqueref)
+    @connect.call('task.get_result', @session, task_opaqueref)
   end
 
   ##
   # Task Errors
   # Params:
   # +task_opaqueref+:: Task Reference
-  def get_task_error(task_opaqueref)
+  def task_get_error(task_opaqueref)
     @connect.call('task.get_error_info', @session, task_opaqueref)
   end
 
@@ -510,13 +578,22 @@ class XenApi
     @connect.call('task.destroy', @session, task_opaqueref)
   end
 
+  ##
+  # Cancel a task, important after Crashes
+  # Params:
+  # +task_opaqueref+:: Task Reference
+  def task_cancel(task_opaqueref)
+    @connect.call('task.cancel', @session, task_opaqueref)
+  end
+
   #---
   # Collection: VDI
   #---
 
   ##
   # Get a list of all VDI
-  def list_vdi
+  # +no_iso_cd+:: Ignore ISO file?
+  def vdi_list(no_iso_cd)
     all_records = \
       @connect.call('VDI.get_all', @session)['Value']
     # Filter Away Snapshots
@@ -527,12 +604,17 @@ class XenApi
     filtered = no_snapshot.select do |vdi_opaqueref|
       !check_vdi_is_xs_iso(vdi_opaqueref)
     end
+    if no_iso_cd == true
+      filtered = filtered.select do |vdi_opaqueref|
+        !check_vdi_is_iso(vdi_opaqueref)
+      end
+    end
     Messages.success_nodesc_with_payload(filtered)
   end
 
   ##
   # Get a list of all Snapshot VDI
-  def list_vdi_snapshot
+  def vdi_list_snapshot
     all_records = \
       @connect.call('VDI.get_all', @session)['Value']
     # Filter Away Snapshots
@@ -544,7 +626,7 @@ class XenApi
 
   ##
   # Get XS-TOOLS VDI
-  def list_vdi_tools
+  def vdi_list_tools
     all_records = \
       @connect.call('VDI.get_all', @session)['Value']
     # Filter Away all butXS-Tools
@@ -558,11 +640,35 @@ class XenApi
   # Get detail of the specified VDI
   # Params:
   # +vdi_opaqueref+:: VDI Reference
-  def get_vdi_record(vdi_opaqueref)
+  def vdi_get_record(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
       Messages.error_not_permitted
     else
-      @connect.call('VDI.get_record', @session, vdi_opaqueref)
+      record = @connect.call('VDI.get_record', @session, vdi_opaqueref)
+      begin
+        record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
+      rescue NoMethodError
+        true
+      end
+      record
+    end
+  end
+
+  ##
+  # Resize the specified VDI
+  # Params:
+  # +vdi_opaqueref+:: VDI Reference
+  # +new_vdi_size+:: New Size of the VDI
+  # FIXME: This is broken by the limitations of XMLRPC Library
+  def vdi_resize(vdi_opaqueref, new_vdi_size)
+    if check_vdi_entity_validity(vdi_opaqueref)
+      Messages.error_not_permitted
+    else
+      begin
+        @connect.call('VDI.resize_online', @session, vdi_opaqueref, new_vdi_size)
+      rescue RuntimeError
+        Messages.error_unsupported
+      end
     end
   end
 
@@ -570,7 +676,7 @@ class XenApi
   # Destroy the specified VDI
   # Params:
   # +vdi_opaqueref+:: VDI Reference
-  def destroy_vdi(vdi_opaqueref)
+  def vdi_destroy(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
       Messages.error_not_permitted
     else
@@ -616,32 +722,35 @@ class XenApi
     if check_vdi_entity_validity(vdi_opaqueref)
       Messages.error_not_permitted
     else
-      @connect.call('VDI.get_tags', @session, vdi_opaqueref, tag)
+      @connect.call('VDI.get_tags', @session, vdi_opaqueref)
     end
   end
 
   ##
-  # search VDI by tag
-  # Params:
+  # Search VDI by tag
   # +tag+         :: Tag
-  # Returns:
-  # Matched VM
-  def vdi_search_by_tag(tag)
-    all_vdi = list_vdi
-    all_vdi.select do |vdi_opaqueref|
+  # Returns Matched VM
+  def vdi_search_by_tag(tag, no_iso_cd)
+    all_vdi = vdi_list(no_iso_cd)['Value']
+    result = all_vdi.select do |vdi_opaqueref|
       vdi_get_tags(vdi_opaqueref)['Value'].include?(tag)
     end
+    Messages.success_nodesc_with_payload(result)
   end
 
   #---
-  # Collection: VBD
+  # Collection: VBD (Virtual Block Devices)
   # TODO: Documentation, but usually VBD is lessly used
   #---
 
-  def vbd_list_
-    @connect.call('VBD.get_all', @session, vbd_opaqueref)
+  ##
+  # Get all VBD on the system
+  def vbd_list
+    @connect.call('VBD.get_all', @session)
   end
 
+  ##
+  # Get detail of the specified VBD
   def vbd_get_detail(vbd_opaqueref)
     @connect.call('VBD.get_record', @session, vbd_opaqueref)
   end
@@ -665,6 +774,136 @@ class XenApi
       qos_algorithm_params: '' # TODO!
     }
     @connect.call('VBD.create', @session, vbd_object)
+  end
+
+  #---
+  # Collection: VIF (Virtual Network Interface)
+  #---
+
+  ##
+  # List all VIF
+  def vif_list
+    @connect.call('VIF.get_all', @session)
+  end
+
+  ##
+  # Get details of the specified VIF
+  # +vif_opaqueref+:: OpaqueRef of the VIF
+  def vif_get_detail(vif_opaqueref)
+    @connect.call('VIF.get_record', @session, vif_opaqueref)
+  end
+
+  ##
+  # Create a VIF
+  # +vm_opaqueref+:: OpaqueRef of target VM
+  # +net_opaqueref+:: Network to be plugged
+  # +slot+:: Where the VIF is "inserted"
+  def vif_create(vm_opaqueref, net_opaqueref, slot)
+    if check_vm_entity_validity(vm_opaqueref)
+      Messages.error_not_permitted
+    else
+      vbd_object = {
+        device: slot.to_i,
+        network: net_opaqueref,
+        VM: vm_opaqueref,
+        MAC: random_mac,
+        MTU: 1500,
+        other_config: {},
+        qos_algorithm_type: '', # TODO!
+        qos_algorithm_params: '' # TODO!
+      }
+      @connect.call('VIF.create', @session, vbd_object)
+    end
+  end
+
+  ##
+  # Destroy the specified VIF
+  # +vif_opaqueref+:: OpaqueRef of the VIF
+  def vif_destroy(vif_opaqueref)
+    @connect.call('VIF.destroy', @session, vif_opaqueref)
+  end
+
+  ##
+  # Plug the VIF
+  # +vif_opaqueref+:: OpaqueRef of the VIF
+  def vif_plug(vif_opaqueref)
+    @connect.call('VIF.plug', @session, vif_opaqueref)
+  end
+
+  ##
+  # UnPlug the VIF
+  # +vif_opaqueref+:: OpaqueRef of the VIF
+  def vif_unplug(vif_opaqueref)
+    @connect.call('VIF.unplug', @session, vif_opaqueref)
+  end
+
+  #---
+  # NET
+  #---
+
+  ##
+  # List all network
+  def network_list
+    @connect.call('network.get_all', @session)
+  end
+
+  ##
+  # Get details of the network
+  def network_get_detail(network_opaqueref)
+    @connect.call('network.get_record', @session, network_opaqueref)
+  end
+
+  ##
+  # Create a Internal Network
+  # +name+:: Name of the Network
+  def network_create(name)
+    vbd_object = {
+      name_label: name,
+      MTU: 1500,
+      other_config: {}
+    }
+    @connect.call('network.create', @session, vbd_object)
+  end
+
+  ##
+  # Destroy a Internal Network
+  # +network_opaqueref+:: OpaqueRef of the Network
+  def network_destroy(network_opaqueref)
+    @connect.call('network.destroy', @session, network_opaqueref)
+  end
+
+  ##
+  # Tag a network
+  # +network_opaqueref+:: OpaqueRef of the Network
+  # +tag+:: the name tag
+  def network_add_tag(network_opaqueref, tag)
+    @connect.call('network.add_tags', @session, network_opaqueref, tag)
+  end
+
+  ##
+  # UNTag a network
+  # +network_opaqueref+:: OpaqueRef of the Network
+  # +tag+:: the name tag
+  def network_rm_tag(network_opaqueref, tag)
+    @connect.call('network.remove_tags', @session, network_opaqueref, tag)
+  end
+
+  ##
+  # Get Tags of network
+  # +network_opaqueref+:: OpaqueRef of the Network
+  def network_get_tags(network_opaqueref)
+    @connect.call('network.get_tags', @session, network_opaqueref)
+  end
+
+  ##
+  # Search network by Tag
+  # +tag+:: the name tag
+  def network_search_by_tag(tag)
+    networks = network_list['Value']
+    result = networks.select do |network_opaqueref|
+      network_get_tags(network_opaqueref)['Value'].include?(tag)
+    end
+    Messages.success_nodesc_with_payload(result)
   end
 
   # Private Scope is intended for wrapping non-official and refactored functions
@@ -698,14 +937,25 @@ class XenApi
   # Filter: Check VM IS PV
   def check_vm_entity_is_paravirtual(vm_opaqueref)
     result = @connect.call('VM.get_PV_bootloader', @session, vm_opaqueref)['Value']
-    # PV always have pygrub in PV_bootloader field
-    result == 'pygrub' ? true : false
+    # PV Templates always have pygrub in PV_bootloader field
+    # https://wiki.xenproject.org/wiki/XCP_PV_templates_start
+    # pygrub will be used after install finished
+    result == 'eliloader' ? true : false
   end
 
   ##
   # Filter: Ignore XS-Tools ISO
   def check_vdi_is_xs_iso(vdi_opaqueref)
     @connect.call('VDI.get_is_tools_iso', @session, vdi_opaqueref)['Value']
+  end
+
+  ##
+  # Filter: Ignore ISO and Hypervisor host CD drive
+  # Only HDD Image can clone. resize is OK but it will not show running disk.
+  def check_vdi_is_iso(vdi_opaqueref)
+    result = @connect.call('VDI.get_allowed_operations', @session, vdi_opaqueref)['Value']
+    read_only = @connect.call('VDI.get_read_only', @session, vdi_opaqueref)['Value']
+    result.include?('clone') && read_only == false ? false : true
   end
 
   ##
@@ -756,20 +1006,21 @@ class XenApi
     if task_opaqueref['Status'] != 'Success'
       Messages.error_switch(task_opaqueref['ErrorDescription'][0][0])
     else
-      task_status = get_task_status(task_opaqueref['Value'])['Value']
+      task_status = task_get_status(task_opaqueref['Value'])['Value']
       while task_status == 'pending'
-        task_status = get_task_status(task_opaqueref['Value'])['Value']
+        task_status = task_get_status(task_opaqueref['Value'])['Value']
         sleep(5)
       end
       if task_status == 'success' && has_payload == false
         task_destroy(task_opaqueref['Value'])
         Messages.success_nodesc
       elsif task_status == 'success' && has_payload == true
-        result = get_task_result(task_opaqueref['Value'])['Value']
+        result = task_get_result(task_opaqueref['Value'])
         task_destroy(task_opaqueref['Value'])
-        result
+        result['Value'] = xml_parse(result['Value'])
+        result['Value']
       else
-        error_info = get_task_error(task_opaqueref['Value'])['Value']
+        error_info = task_get_error(task_opaqueref['Value'])['Value']
         task_destroy(task_opaqueref['Value'])
         Messages.error_unknown(error_info)
       end
@@ -784,9 +1035,12 @@ class XenApi
   # This parser is adapted from https://gist.github.com/ascendbruce/7070951
   def parse_last_boot_record(raw_last_boot_record)
     parsed = JSON.parse(raw_last_boot_record)
-    puts raw_last_boot_record
     # Also need to convert mess stuffs to Human-readable
-    parsed['last_start_time'] = Time.at(parsed['last_start_time']).to_s
+    begin
+      parsed['last_start_time'] = Time.at(parsed['last_start_time']).to_s
+    rescue NoMethodError
+      parsed['last_start_time'] = ''
+    end
     parsed
   rescue JSON::ParserError
     # Ruby rescue is catch in other languages
@@ -798,7 +1052,7 @@ class XenApi
   # XML Parser, important
   # https://github.com/savonrb/nori
   def xml_parse(raw_xml)
-    xml_parser = Nori.new(parser: :rexml, convert_tags_to: ->(tag) { tag.snakecase })
+    xml_parser = Nori.new(convert_tags_to: ->(tag) { tag.snakecase })
     xml_parser.parse(raw_xml)
   end
 
@@ -807,5 +1061,10 @@ class XenApi
     true if Integer(string)
   rescue Integer::ArgumentError
     false
+  end
+
+  # https://github.com/andrewgho/genmac
+  def random_mac
+    (1..6).collect { format('%02x', (rand 255)) }.join(':')
   end
 end
