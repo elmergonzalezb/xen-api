@@ -33,6 +33,7 @@ class XenApi
 
   ##
   # Logout
+  #
   def session_logout
     @connect.call('session.logout', @session)
   end
@@ -304,7 +305,6 @@ class XenApi
 
   ##
   # Clone from PV Template
-  # TODO: Test Required
   #
   # +vm_tpl_opaqueref+:: Source Template Identifier
   # +new_vm_name+          :: Name of the new VM
@@ -312,8 +312,7 @@ class XenApi
   # +repo_url+             :: URL of the Distro Repo
   # +distro+               :: Distro Family, acceptable values are _debian_ and _rhel_
   # +distro_release+       :: Release Name of the specified Debian/Ubuntu Release. example: _jessie_(Debian 8), _trusty_(Ubuntu 14.04)
-  # Returns:
-  # the record of new vm
+  # Returns: The record of new vm
   def vm_clone_from_template(vm_tpl_opaqueref, new_vm_name, pv_boot_param, repo_url, distro, distro_release, net_opaqueref)
     if check_vm_template_validity(vm_tpl_opaqueref) || new_vm_name.nil? || new_vm_name == ''
       Messages.error_not_permitted
@@ -467,8 +466,7 @@ class XenApi
   #
   # +vm_opaqueref+:: VM Identifier
   # +tag+         :: Tag
-  # Returns:
-  # Tags
+  # Returns: Tags
   def vm_get_tags(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -481,8 +479,7 @@ class XenApi
   # search VM by tag
   #
   # +tag+         :: Tag
-  # Returns:
-  # Matched VM
+  # Returns Matched VM
   def vm_search_by_tag(tag)
     all_vm = vm_list_all
     all_vm['Value'].select do |vm_opaqueref|
@@ -492,6 +489,7 @@ class XenApi
 
   ##
   # Set VM Name
+  #
   # +vm_opaqueref+:: VM OpaqueRef
   # +vm_name+:: VM Name
   def vm_set_name(vm_opaqueref, vm_name)
@@ -507,12 +505,8 @@ class XenApi
   # +vm_opaqueref+:: VM OpaqueRef
   # +max_size+:: Memory Capacity
   # +min_size+:: Memory Baseline
-  # ---
-  # XMLRPC Library only accepts 32-bit SignedInt
-  # 2147483648 (2GB actual value) will cause
-  # RuntimeError: Integer is too big! Must be signed 32-bit integer!
-  # WHAT THE HELL.
-  # ---
+  #
+  # FIXME: XMLRPC Library only accepts 32-bit SignedInt. 2147483648 (2GB actual value) will cause RuntimeError: Integer is too big! Must be signed 32-bit integer!
   def vm_set_max_ram(vm_opaqueref, max_size)
     if check_vm_entity_validity(vm_opaqueref)
       Messages.error_not_permitted
@@ -525,13 +519,15 @@ class XenApi
       end
     end
   end
+
   #---
   # Collection: Task
   #---
 
   ##
   # All Task
-  def list_task_all_records
+  #
+  def task_list_all_records
     @connect.call('task.get_all_records', @session)
   end
 
@@ -900,7 +896,9 @@ class XenApi
     Messages.success_nodesc_with_payload(result)
   end
 
+  #---
   # Private Scope is intended for wrapping non-official and refactored functions
+  #---
 
   private
 
@@ -1021,9 +1019,7 @@ class XenApi
 
   ##
   # Parse the last boot record to Hash.
-  # You may say why don't I just put JSON.parse.
-  # The main problem is some VM that uses maybe older XS Guest Additions
-  # generates ('struct') instead of pretty JSON string
+  #
   # This parser is adapted from https://gist.github.com/ascendbruce/7070951
   def parse_last_boot_record(raw_last_boot_record)
     parsed = JSON.parse(raw_last_boot_record)
@@ -1036,7 +1032,7 @@ class XenApi
     parsed
   rescue JSON::ParserError
     # Ruby rescue is catch in other languages
-    # Parsing struct is farrrrrrr to difficult
+    # Parsing struct is farrrrrrr too difficult
     Messages.error_unsupported
   end
 
@@ -1048,6 +1044,7 @@ class XenApi
     xml_parser.parse(raw_xml)
   end
 
+  ##
   # https://stackoverflow.com/questions/5661466/test-if-string-is-a-number-in-ruby-on-rails
   def number?(string)
     true if Integer(string)
@@ -1055,6 +1052,7 @@ class XenApi
     false
   end
 
+  ##
   # https://github.com/andrewgho/genmac
   def random_mac
     (1..6).collect { format('%02x', (rand 255)) }.join(':')

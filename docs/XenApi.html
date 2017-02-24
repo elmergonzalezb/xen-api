@@ -97,8 +97,6 @@
     
     <li ><a href="#method-i-check_vm_template_validity">#check_vm_template_validity</a>
     
-    <li ><a href="#method-i-list_task_all_records">#list_task_all_records</a>
-    
     <li ><a href="#method-i-logout">#logout</a>
     
     <li ><a href="#method-i-network_add_tag">#network_add_tag</a>
@@ -136,6 +134,8 @@
     <li ><a href="#method-i-task_get_result">#task_get_result</a>
     
     <li ><a href="#method-i-task_get_status">#task_get_status</a>
+    
+    <li ><a href="#method-i-task_list_all_records">#task_list_all_records</a>
     
     <li ><a href="#method-i-vbd_create">#vbd_create</a>
     
@@ -332,39 +332,6 @@
        </header>
 
     
-      <div id="method-i-list_task_all_records" class="method-detail ">
-        
-        <div class="method-heading">
-          <span class="method-name">list_task_all_records</span><span
-            class="method-args">()</span>
-          
-          <span class="method-click-advice">click to toggle source</span>
-          
-        </div>
-        
-
-        <div class="method-description">
-          
-          <p>All Task</p>
-          
-          
-
-          
-          <div class="method-source-code" id="list_task_all_records-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 534</span>
-<span class="ruby-keyword">def</span> <span class="ruby-identifier">list_task_all_records</span>
-  <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_all_records&#39;</span>, <span class="ruby-ivar">@session</span>)
-<span class="ruby-keyword">end</span></pre>
-          </div>
-          
-        </div>
-
-        
-
-        
-      </div>
-
-    
       <div id="method-i-logout" class="method-detail ">
         
         <div class="method-heading">
@@ -386,7 +353,7 @@
 
           
           <div class="method-source-code" id="logout-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 44</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 45</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">logout</span>
   <span class="ruby-identifier">session_logout</span>
 <span class="ruby-keyword">end</span></pre>
@@ -426,7 +393,7 @@
 
           
           <div class="method-source-code" id="network_add_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 873</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 869</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_add_tag</span>(<span class="ruby-identifier">network_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.add_tags&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">network_opaqueref</span>, <span class="ruby-identifier">tag</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -463,7 +430,7 @@
 
           
           <div class="method-source-code" id="network_create-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 853</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 849</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_create</span>(<span class="ruby-identifier">name</span>)
   <span class="ruby-identifier">vbd_object</span> = {
     <span class="ruby-identifier">name_label</span><span class="ruby-operator">:</span> <span class="ruby-identifier">name</span>,
@@ -505,7 +472,7 @@
 
           
           <div class="method-source-code" id="network_destroy-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 865</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 861</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_destroy</span>(<span class="ruby-identifier">network_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.destroy&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">network_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -538,7 +505,7 @@
 
           
           <div class="method-source-code" id="network_get_detail-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 846</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 842</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_get_detail</span>(<span class="ruby-identifier">network_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.get_record&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">network_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -575,7 +542,7 @@
 
           
           <div class="method-source-code" id="network_get_tags-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 888</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 884</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_get_tags</span>(<span class="ruby-identifier">network_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.get_tags&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">network_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -608,7 +575,7 @@
 
           
           <div class="method-source-code" id="network_list-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 840</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 836</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_list</span>
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -648,7 +615,7 @@
 
           
           <div class="method-source-code" id="network_rm_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 881</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 877</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_rm_tag</span>(<span class="ruby-identifier">network_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;network.remove_tags&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">network_opaqueref</span>, <span class="ruby-identifier">tag</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -685,7 +652,7 @@
 
           
           <div class="method-source-code" id="network_search_by_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 895</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 891</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">network_search_by_tag</span>(<span class="ruby-identifier">tag</span>)
   <span class="ruby-identifier">networks</span> = <span class="ruby-identifier">network_list</span>[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-identifier">result</span> = <span class="ruby-identifier">networks</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">network_opaqueref</span><span class="ruby-operator">|</span>
@@ -722,7 +689,7 @@
 
           
           <div class="method-source-code" id="session_logout-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 36</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 37</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">session_logout</span>
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;session.logout&#39;</span>, <span class="ruby-ivar">@session</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -759,7 +726,7 @@
 
           
           <div class="method-source-code" id="task_cancel-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 582</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 578</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_cancel</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.cancel&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -796,7 +763,7 @@
 
           
           <div class="method-source-code" id="task_destroy-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 574</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 570</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_destroy</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.destroy&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -833,7 +800,7 @@
 
           
           <div class="method-source-code" id="task_get_error-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 566</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 562</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_get_error</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_error_info&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -870,7 +837,7 @@
 
           
           <div class="method-source-code" id="task_get_record-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 542</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 538</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_get_record</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_record&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -907,7 +874,7 @@
 
           
           <div class="method-source-code" id="task_get_result-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 558</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 554</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_get_result</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_result&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -944,9 +911,42 @@
 
           
           <div class="method-source-code" id="task_get_status-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 550</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 546</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">task_get_status</span>(<span class="ruby-identifier">task_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_status&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">task_opaqueref</span>)
+<span class="ruby-keyword">end</span></pre>
+          </div>
+          
+        </div>
+
+        
+
+        
+      </div>
+
+    
+      <div id="method-i-task_list_all_records" class="method-detail ">
+        
+        <div class="method-heading">
+          <span class="method-name">task_list_all_records</span><span
+            class="method-args">()</span>
+          
+          <span class="method-click-advice">click to toggle source</span>
+          
+        </div>
+        
+
+        <div class="method-description">
+          
+          <p>All Task</p>
+          
+          
+
+          
+          <div class="method-source-code" id="task_list_all_records-source">
+            <pre><span class="ruby-comment"># File xenapi.rb, line 530</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">task_list_all_records</span>
+  <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;task.get_all_records&#39;</span>, <span class="ruby-ivar">@session</span>)
 <span class="ruby-keyword">end</span></pre>
           </div>
           
@@ -987,7 +987,7 @@
 
           
           <div class="method-source-code" id="vbd_create-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 758</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 754</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vbd_create</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">vdi_opaqueref</span>, <span class="ruby-identifier">device_slot</span>)
   <span class="ruby-identifier">vbd_object</span> = {
     <span class="ruby-constant">VM</span><span class="ruby-operator">:</span> <span class="ruby-identifier">vm_opaqueref</span>,
@@ -1031,7 +1031,7 @@
 
           
           <div class="method-source-code" id="vbd_get_detail-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 748</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 744</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vbd_get_detail</span>(<span class="ruby-identifier">vbd_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VBD.get_record&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vbd_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1064,7 +1064,7 @@
 
           
           <div class="method-source-code" id="vbd_list-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 742</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 738</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vbd_list</span>
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VBD.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1104,7 +1104,7 @@
 
           
           <div class="method-source-code" id="vdi_add_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 687</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 683</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_add_tag</span>(<span class="ruby-identifier">vdi_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1145,7 +1145,7 @@
 
           
           <div class="method-source-code" id="vdi_destroy-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 673</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 669</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_destroy</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1187,7 +1187,7 @@
 
           
           <div class="method-source-code" id="vdi_get_record-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 637</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 633</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_get_record</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1239,7 +1239,7 @@
 
           
           <div class="method-source-code" id="vdi_get_tags-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 715</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 711</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_get_tags</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1280,7 +1280,7 @@
 
           
           <div class="method-source-code" id="vdi_list-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 593</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 589</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_list</span>(<span class="ruby-identifier">iso_cd</span>)
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away Snapshots</span>
@@ -1327,7 +1327,7 @@
 
           
           <div class="method-source-code" id="vdi_list_snapshot-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 613</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 609</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_list_snapshot</span>
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away Snapshots</span>
@@ -1365,7 +1365,7 @@
 
           
           <div class="method-source-code" id="vdi_list_tools-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 624</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 620</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_list_tools</span>
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away all butXS-Tools</span>
@@ -1412,7 +1412,7 @@
 
           
           <div class="method-source-code" id="vdi_resize-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 657</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 653</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_resize</span>(<span class="ruby-identifier">vdi_opaqueref</span>, <span class="ruby-identifier">new_vdi_size</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1460,7 +1460,7 @@
 
           
           <div class="method-source-code" id="vdi_rm_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 700</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 696</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_rm_tag</span>(<span class="ruby-identifier">vdi_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1503,7 +1503,7 @@
 
           
           <div class="method-source-code" id="vdi_search_by_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 727</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 723</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_search_by_tag</span>(<span class="ruby-identifier">tag</span>)
   <span class="ruby-identifier">all_vdi</span> = <span class="ruby-identifier">vdi_list</span>(<span class="ruby-string">&#39;include&#39;</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-identifier">result</span> = <span class="ruby-identifier">all_vdi</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
@@ -1550,7 +1550,7 @@
 
           
           <div class="method-source-code" id="vif_create-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 795</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 791</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_create</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">net_opaqueref</span>, <span class="ruby-identifier">slot</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1601,7 +1601,7 @@
 
           
           <div class="method-source-code" id="vif_destroy-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 816</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 812</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_destroy</span>(<span class="ruby-identifier">vif_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VIF.destroy&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vif_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1638,7 +1638,7 @@
 
           
           <div class="method-source-code" id="vif_get_detail-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 786</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 782</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_get_detail</span>(<span class="ruby-identifier">vif_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VIF.get_record&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vif_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1671,7 +1671,7 @@
 
           
           <div class="method-source-code" id="vif_list-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 779</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 775</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_list</span>
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VIF.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1708,7 +1708,7 @@
 
           
           <div class="method-source-code" id="vif_plug-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 823</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 819</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_plug</span>(<span class="ruby-identifier">vif_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VIF.plug&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vif_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1745,7 +1745,7 @@
 
           
           <div class="method-source-code" id="vif_unplug-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 830</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 826</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vif_unplug</span>(<span class="ruby-identifier">vif_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VIF.unplug&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vif_opaqueref</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1788,7 +1788,7 @@
 
           
           <div class="method-source-code" id="vm_add_other_config-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 391</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 390</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_add_other_config</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1832,7 +1832,7 @@
 
           
           <div class="method-source-code" id="vm_add_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 444</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 443</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_add_tag</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1879,7 +1879,7 @@ APIDoc P111, Copy tends to be more guaranteed.</p>
 
           
           <div class="method-source-code" id="vm_clone-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 290</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 291</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_clone</span>(<span class="ruby-identifier">old_vm_opaqueref</span>, <span class="ruby-identifier">new_vm_name</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">old_vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">new_vm_name</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">new_vm_name</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span>
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -1917,7 +1917,7 @@ APIDoc P111, Copy tends to be more guaranteed.</p>
 
         <div class="method-description">
           
-          <p>Clone from PV Template TODO: Test Required</p>
+          <p>Clone from PV Template</p>
 <dl class="rdoc-list note-list"><dt><code>vm_tpl_opaqueref</code>
 <dd>
 <p>Source Template Identifier</p>
@@ -1939,13 +1939,13 @@ APIDoc P111, Copy tends to be more guaranteed.</p>
 <em>jessie</em>(Debian 8), <em>trusty</em>(Ubuntu 14.04)</p>
 </dd></dl>
 
-<p>Returns: the record of new vm</p>
+<p>Returns: The record of new vm</p>
           
           
 
           
           <div class="method-source-code" id="vm_clone_from_template-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 317</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 316</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_clone_from_template</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>, <span class="ruby-identifier">new_vm_name</span>, <span class="ruby-identifier">pv_boot_param</span>, <span class="ruby-identifier">repo_url</span>, <span class="ruby-identifier">distro</span>, <span class="ruby-identifier">distro_release</span>, <span class="ruby-identifier">net_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_template_validity</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">new_vm_name</span>.<span class="ruby-identifier">nil?</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">new_vm_name</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span>
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2017,7 +2017,7 @@ APIDoc P111, Copy tends to be more guaranteed.</p>
 
           
           <div class="method-source-code" id="vm_destroy-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 360</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 359</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_destroy</span>(<span class="ruby-identifier">old_vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">old_vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2075,7 +2075,7 @@ APIDoc P111, Copy tends to be more guaranteed.</p>
 
           
           <div class="method-source-code" id="vm_get_guest_metrics-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 158</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 159</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_guest_metrics</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2126,7 +2126,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_guest_metrics_network-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 179</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 180</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_guest_metrics_network</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2168,7 +2168,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_metrics-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 133</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 134</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_metrics</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2222,7 +2222,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_other_config-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 416</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 415</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_other_config</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-identifier">record</span> = <span class="ruby-identifier">vm_get_record</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">record</span>[<span class="ruby-string">&#39;Status&#39;</span>] <span class="ruby-operator">!=</span> <span class="ruby-string">&#39;Success&#39;</span>
@@ -2264,7 +2264,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_record-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 86</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 87</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_record</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2324,7 +2324,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_tags-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 472</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 470</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_tags</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2365,7 +2365,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_template_record-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 112</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 113</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_template_record</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_is_nonexist</span>(<span class="ruby-identifier">vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vm_entity_is_dom0</span>(<span class="ruby-identifier">vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_opaqueref</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_opaqueref</span>.<span class="ruby-identifier">nil?</span>
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2415,7 +2415,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_vbds-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 192</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 193</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_vbds</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2456,7 +2456,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_get_vifs-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 204</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 205</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_get_vifs</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2493,7 +2493,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_list_all-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 51</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 52</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_list_all</span>
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away Control Domain</span>
@@ -2539,7 +2539,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_list_all_templates-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 68</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 69</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_list_all_templates</span>(<span class="ruby-identifier">pv</span>)
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away non-template (VM Instances + dom0)</span>
@@ -2586,7 +2586,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_power_off-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 229</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 230</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_power_off</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2628,7 +2628,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_power_on-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 216</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 217</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_power_on</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2670,7 +2670,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_power_pause-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 255</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 256</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_power_pause</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2714,7 +2714,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_power_reboot-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 242</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 243</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_power_reboot</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2756,7 +2756,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_power_unpause-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 270</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 271</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_power_unpause</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2803,7 +2803,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_rm_other_config-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 404</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 403</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_rm_other_config</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">key</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2847,7 +2847,7 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 
           
           <div class="method-source-code" id="vm_rm_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 457</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 456</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_rm_tag</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">tag</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2884,13 +2884,13 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 <p>Tag</p>
 </dd></dl>
 
-<p>Returns: Matched VM</p>
+<p>Returns Matched VM</p>
           
           
 
           
           <div class="method-source-code" id="vm_search_by_tag-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 486</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 483</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_search_by_tag</span>(<span class="ruby-identifier">tag</span>)
   <span class="ruby-identifier">all_vm</span> = <span class="ruby-identifier">vm_list_all</span>
   <span class="ruby-identifier">all_vm</span>[<span class="ruby-string">&#39;Value&#39;</span>].<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vm_opaqueref</span><span class="ruby-operator">|</span>
@@ -2931,18 +2931,16 @@ href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-net
 <dd>
 <p>Memory Baseline</p>
 </dd></dl>
-<hr>
 
-<p>XMLRPC Library only accepts 32-bit SignedInt 2147483648 (2GB actual value)
-will cause RuntimeError: Integer is too big! Must be signed 32-bit integer!
-WHAT THE HELL.</p>
-<hr>
+<p>FIXME: XMLRPC Library only accepts 32-bit SignedInt. 2147483648 (2GB actual
+value) will cause RuntimeError: Integer is too big! Must be signed 32-bit
+integer!</p>
           
           
 
           
           <div class="method-source-code" id="vm_set_max_ram-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 516</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 510</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_set_max_ram</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">max_size</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -2991,7 +2989,7 @@ WHAT THE HELL.</p>
 
           
           <div class="method-source-code" id="vm_set_name-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 497</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 495</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_set_name</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">vm_name</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -3038,7 +3036,7 @@ WHAT THE HELL.</p>
 
           
           <div class="method-source-code" id="vm_set_other_config-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 431</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 430</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">vm_set_other_config</span>(<span class="ruby-identifier">vm_opaqueref</span>, <span class="ruby-identifier">key</span>, <span class="ruby-identifier">value</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_not_permitted</span>
@@ -3084,7 +3082,7 @@ task status</p>
 
           
           <div class="method-source-code" id="async_task_manager-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 997</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 995</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">async_task_manager</span>(<span class="ruby-identifier">task_opaqueref</span>, <span class="ruby-identifier">has_payload</span>)
   <span class="ruby-keyword">if</span> <span class="ruby-identifier">task_opaqueref</span>[<span class="ruby-string">&#39;Status&#39;</span>] <span class="ruby-operator">!=</span> <span class="ruby-string">&#39;Success&#39;</span>
     <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_switch</span>(<span class="ruby-identifier">task_opaqueref</span>[<span class="ruby-string">&#39;ErrorDescription&#39;</span>][<span class="ruby-value">0</span>][<span class="ruby-value">0</span>])
@@ -3138,7 +3136,7 @@ task status</p>
 
           
           <div class="method-source-code" id="check_vdi_entity_is_nonexist-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 963</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 961</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vdi_entity_is_nonexist</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-identifier">result</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_uuid&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Status&#39;</span>]
   <span class="ruby-identifier">result</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;Success&#39;</span> <span class="ruby-operator">?</span> <span class="ruby-keyword">false</span> <span class="ruby-operator">:</span> <span class="ruby-keyword">true</span>
@@ -3172,7 +3170,7 @@ task status</p>
 
           
           <div class="method-source-code" id="check_vdi_entity_validity-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 986</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 984</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vdi_entity_validity</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-identifier">check_vdi_entity_is_nonexist</span>(<span class="ruby-identifier">vdi_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vdi_is_a_snapshot</span>(<span class="ruby-identifier">vdi_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vdi_is_xs_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">vdi_opaqueref</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">vdi_opaqueref</span>.<span class="ruby-identifier">nil?</span>
 <span class="ruby-keyword">end</span></pre>
@@ -3205,7 +3203,7 @@ task status</p>
 
           
           <div class="method-source-code" id="check_vdi_is_a_snapshot-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 957</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 955</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vdi_is_a_snapshot</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_is_a_snapshot&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
 <span class="ruby-keyword">end</span></pre>
@@ -3239,7 +3237,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vdi_is_iso-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 949</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 947</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vdi_is_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-identifier">result</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_allowed_operations&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-identifier">read_only</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_read_only&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
@@ -3274,7 +3272,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vdi_is_xs_iso-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 942</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 940</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vdi_is_xs_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_is_tools_iso&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
 <span class="ruby-keyword">end</span></pre>
@@ -3307,7 +3305,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_entity_is_dom0-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 913</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 911</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_entity_is_dom0</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_is_control_domain&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vm_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
 <span class="ruby-keyword">end</span></pre>
@@ -3340,7 +3338,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_entity_is_nonexist-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 925</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 923</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_entity_is_nonexist</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-identifier">result</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_uuid&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vm_opaqueref</span>)[<span class="ruby-string">&#39;Status&#39;</span>]
   <span class="ruby-identifier">result</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;Success&#39;</span> <span class="ruby-operator">?</span> <span class="ruby-keyword">false</span> <span class="ruby-operator">:</span> <span class="ruby-keyword">true</span>
@@ -3374,7 +3372,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_entity_is_paravirtual-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 932</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 930</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_entity_is_paravirtual</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-identifier">result</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_PV_bootloader&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vm_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># PV Templates always have pygrub in PV_bootloader field</span>
@@ -3411,7 +3409,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_entity_is_template-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 919</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 917</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_entity_is_template</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VM.get_is_a_template&#39;</span>, <span class="ruby-ivar">@session</span>, <span class="ruby-identifier">vm_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
 <span class="ruby-keyword">end</span></pre>
@@ -3444,7 +3442,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_entity_validity-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 974</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 972</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_entity_validity</span>(<span class="ruby-identifier">vm_opaqueref</span>)
   <span class="ruby-identifier">check_vm_entity_is_nonexist</span>(<span class="ruby-identifier">vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vm_entity_is_dom0</span>(<span class="ruby-identifier">vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vm_entity_is_template</span>(<span class="ruby-identifier">vm_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_opaqueref</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_opaqueref</span>.<span class="ruby-identifier">nil?</span>
 <span class="ruby-keyword">end</span></pre>
@@ -3477,7 +3475,7 @@ resize is OK but it will not show running disk.</p>
 
           
           <div class="method-source-code" id="check_vm_template_validity-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 980</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 978</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">check_vm_template_validity</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>)
   <span class="ruby-identifier">check_vm_entity_is_nonexist</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">check_vm_entity_is_dom0</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-identifier">check_vm_entity_is_template</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-operator">!</span><span class="ruby-identifier">check_vm_entity_is_paravirtual</span>(<span class="ruby-identifier">vm_tpl_opaqueref</span>) <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_tpl_opaqueref</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;&#39;</span> <span class="ruby-operator">||</span> <span class="ruby-identifier">vm_tpl_opaqueref</span>.<span class="ruby-identifier">nil?</span>
 <span class="ruby-keyword">end</span></pre>
@@ -3511,7 +3509,7 @@ href="https://stackoverflow.com/questions/5661466/test-if-string-is-a-number-in-
 
           
           <div class="method-source-code" id="number-3F-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 1052</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 1049</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">number?</span>(<span class="ruby-identifier">string</span>)
   <span class="ruby-keyword">true</span> <span class="ruby-keyword">if</span> <span class="ruby-constant">Integer</span>(<span class="ruby-identifier">string</span>)
 <span class="ruby-keyword">rescue</span> <span class="ruby-constant">Integer</span><span class="ruby-operator">::</span><span class="ruby-constant">ArgumentError</span>
@@ -3540,17 +3538,16 @@ href="https://stackoverflow.com/questions/5661466/test-if-string-is-a-number-in-
 
         <div class="method-description">
           
-          <p>Parse the last boot record to Hash. You may say why don&#39;t I just put
-JSON.parse. The main problem is some VM that uses maybe older XS Guest
-Additions generates (&#39;struct&#39;) instead of pretty JSON string This
-parser is adapted from <a
+          <p>Parse the last boot record to Hash.</p>
+
+<p>This parser is adapted from <a
 href="https://gist.github.com/ascendbruce/7070951">gist.github.com/ascendbruce/7070951</a></p>
           
           
 
           
           <div class="method-source-code" id="parse_last_boot_record-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 1028</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 1024</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">parse_last_boot_record</span>(<span class="ruby-identifier">raw_last_boot_record</span>)
   <span class="ruby-identifier">parsed</span> = <span class="ruby-constant">JSON</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">raw_last_boot_record</span>)
   <span class="ruby-comment"># Also need to convert mess stuffs to Human-readable</span>
@@ -3562,7 +3559,7 @@ href="https://gist.github.com/ascendbruce/7070951">gist.github.com/ascendbruce/7
   <span class="ruby-identifier">parsed</span>
 <span class="ruby-keyword">rescue</span> <span class="ruby-constant">JSON</span><span class="ruby-operator">::</span><span class="ruby-constant">ParserError</span>
   <span class="ruby-comment"># Ruby rescue is catch in other languages</span>
-  <span class="ruby-comment"># Parsing struct is farrrrrrr to difficult</span>
+  <span class="ruby-comment"># Parsing struct is farrrrrrr too difficult</span>
   <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">error_unsupported</span>
 <span class="ruby-keyword">end</span></pre>
           </div>
@@ -3595,7 +3592,7 @@ href="https://github.com/andrewgho/genmac">github.com/andrewgho/genmac</a></p>
 
           
           <div class="method-source-code" id="random_mac-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 1059</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 1057</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">random_mac</span>
   (<span class="ruby-value">1</span><span class="ruby-operator">..</span><span class="ruby-value">6</span>).<span class="ruby-identifier">collect</span> { <span class="ruby-identifier">format</span>(<span class="ruby-string">&#39;%02x&#39;</span>, (<span class="ruby-identifier">rand</span> <span class="ruby-value">255</span>)) }.<span class="ruby-identifier">join</span>(<span class="ruby-string">&#39;:&#39;</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -3629,7 +3626,7 @@ href="https://github.com/savonrb/nori">github.com/savonrb/nori</a></p>
 
           
           <div class="method-source-code" id="xml_parse-source">
-            <pre><span class="ruby-comment"># File xenapi.rb, line 1046</span>
+            <pre><span class="ruby-comment"># File xenapi.rb, line 1042</span>
 <span class="ruby-keyword">def</span> <span class="ruby-identifier">xml_parse</span>(<span class="ruby-identifier">raw_xml</span>)
   <span class="ruby-identifier">xml_parser</span> = <span class="ruby-constant">Nori</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">convert_tags_to</span><span class="ruby-operator">:</span> <span class="ruby-operator">-</span><span class="ruby-operator">&gt;</span>(<span class="ruby-identifier">tag</span>) { <span class="ruby-identifier">tag</span>.<span class="ruby-identifier">snakecase</span> })
   <span class="ruby-identifier">xml_parser</span>.<span class="ruby-identifier">parse</span>(<span class="ruby-identifier">raw_xml</span>)
