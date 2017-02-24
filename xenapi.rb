@@ -11,7 +11,7 @@ require './messages.rb'
 class XenApi
   ##
   # Initalize the API by login to XenServer.
-  # Params:
+  #
   # +server_path+:: Server Address
   # +server_port+:: Server API Port, useful while oeprate over SSH
   # +username+   :: Username, usually _root_
@@ -63,7 +63,7 @@ class XenApi
 
   ##
   # Get all Templates
-  # Params:
+  #
   # +pv+:: Paravirtual Templates Only?
   def vm_list_all_templates(pv)
     all_records = @connect.call('VM.get_all', @session)['Value']
@@ -81,7 +81,7 @@ class XenApi
 
   ##
   # Get Virtual Machines Detail by OpaqueRef
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_record(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -107,7 +107,7 @@ class XenApi
 
   ##
   # Get Virtual Machines Detail by OpaqueRef
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_template_record(vm_opaqueref)
     if check_vm_entity_is_nonexist(vm_opaqueref) || check_vm_entity_is_dom0(vm_opaqueref) || vm_opaqueref == '' || vm_opaqueref.nil?
@@ -128,7 +128,7 @@ class XenApi
 
   ##
   # Get Various Physical Details about the VM
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_metrics(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -153,7 +153,7 @@ class XenApi
 
   ##
   # Get Various Runtime Detail about the VM
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_guest_metrics(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -174,7 +174,7 @@ class XenApi
 
   # Get VM Network IPs
   # http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters/
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_guest_metrics_network(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -187,7 +187,7 @@ class XenApi
 
   ##
   # Get Block Devices of the specified VM
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_vbds(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -199,7 +199,7 @@ class XenApi
 
   ##
   # Get Virtual Network Interfaces (VIFs) of the specified VM
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_get_vifs(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -211,7 +211,7 @@ class XenApi
 
   ##
   # Power ON the specified Virtual Machine
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_power_on(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -224,7 +224,7 @@ class XenApi
 
   ##
   # Power OFF the specified Virtual Machine
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_power_off(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -237,7 +237,7 @@ class XenApi
 
   ##
   # Reboot the specified Virtual Machines
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_power_reboot(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -250,7 +250,7 @@ class XenApi
 
   ##
   # Suspend the specified Virtual Machine
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_power_pause(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -265,7 +265,7 @@ class XenApi
 
   ##
   # Wake up the specified Virtual Machine
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   def vm_power_unpause(vm_opaqueref)
     if check_vm_entity_validity(vm_opaqueref)
@@ -282,7 +282,7 @@ class XenApi
   # Clone the target Virtual Machine
   # Returns the reference point of new vm
   # APIDoc P111, Copy tends to be more guaranteed.
-  # Params:
+  #
   # +old_vm_opaqueref+:: Source VM Identifier
   # +new_vm_name+     :: Name of the new VM
   # Returns:
@@ -305,7 +305,7 @@ class XenApi
   ##
   # Clone from PV Template
   # TODO: Test Required
-  # Params:
+  #
   # +vm_tpl_opaqueref+:: Source Template Identifier
   # +new_vm_name+          :: Name of the new VM
   # +pv_boot_param+        :: Boot Command Line
@@ -355,7 +355,7 @@ class XenApi
 
   ##
   # Erase the target Virtual Machine, along with related VDIs
-  # Params:
+  #
   # +old_vm_opaqueref+:: VM Identifier
   def vm_destroy(old_vm_opaqueref)
     if check_vm_entity_validity(old_vm_opaqueref)
@@ -384,7 +384,7 @@ class XenApi
 
   ##
   # Add "other config", useful for official PV Instance template
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +key+         :: Config Key
   # +value+       :: Config Value
@@ -398,7 +398,7 @@ class XenApi
 
   ##
   # Unset "other config", useful for official PV Instance template
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +key+         :: Config Key
   def vm_rm_other_config(vm_opaqueref, key)
@@ -411,7 +411,7 @@ class XenApi
 
   ##
   # Get other_config field.
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   def vm_get_other_config(vm_opaqueref)
     record = vm_get_record(vm_opaqueref)
@@ -424,7 +424,7 @@ class XenApi
 
   ##
   # Set "other config", useful for official PV Instance template
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +key+         :: Config Key
   # +value+       :: Config Value
@@ -438,7 +438,7 @@ class XenApi
 
   ##
   # Add a tag to the specified VM
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +tag+         :: Tag
   def vm_add_tag(vm_opaqueref, tag)
@@ -451,7 +451,7 @@ class XenApi
 
   ##
   # Unset VM tags
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +tag+         :: Tag
   def vm_rm_tag(vm_opaqueref, tag)
@@ -464,7 +464,7 @@ class XenApi
 
   ##
   # Get VM tags
-  # Params:
+  #
   # +vm_opaqueref+:: VM Identifier
   # +tag+         :: Tag
   # Returns:
@@ -479,7 +479,7 @@ class XenApi
 
   ##
   # search VM by tag
-  # Params:
+  #
   # +tag+         :: Tag
   # Returns:
   # Matched VM
@@ -537,7 +537,7 @@ class XenApi
 
   ##
   # Get Task Record
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_get_record(task_opaqueref)
     @connect.call('task.get_record', @session, task_opaqueref)
@@ -545,7 +545,7 @@ class XenApi
 
   ##
   # Task Status
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_get_status(task_opaqueref)
     @connect.call('task.get_status', @session, task_opaqueref)
@@ -553,7 +553,7 @@ class XenApi
 
   ##
   # Task Result
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_get_result(task_opaqueref)
     @connect.call('task.get_result', @session, task_opaqueref)
@@ -561,7 +561,7 @@ class XenApi
 
   ##
   # Task Errors
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_get_error(task_opaqueref)
     @connect.call('task.get_error_info', @session, task_opaqueref)
@@ -569,7 +569,7 @@ class XenApi
 
   ##
   # Destroy a task, important after working on a Async Task
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_destroy(task_opaqueref)
     @connect.call('task.destroy', @session, task_opaqueref)
@@ -577,7 +577,7 @@ class XenApi
 
   ##
   # Cancel a task, important after Crashes
-  # Params:
+  #
   # +task_opaqueref+:: Task Reference
   def task_cancel(task_opaqueref)
     @connect.call('task.cancel', @session, task_opaqueref)
@@ -589,8 +589,8 @@ class XenApi
 
   ##
   # Get a list of all VDI
-  # +no_iso_cd+:: Ignore ISO file?
-  def vdi_list(no_iso_cd)
+  # +iso_cd+:: Ignore ISO file? possible values are inclue, exclude, only
+  def vdi_list(iso_cd)
     all_records = @connect.call('VDI.get_all', @session)['Value']
     # Filter Away Snapshots
     no_snapshot = all_records.select do |vdi_opaqueref|
@@ -600,10 +600,10 @@ class XenApi
     filtered = no_snapshot.select do |vdi_opaqueref|
       !check_vdi_is_xs_iso(vdi_opaqueref)
     end
-    if no_iso_cd == true
-      filtered = filtered.select do |vdi_opaqueref|
-        !check_vdi_is_iso(vdi_opaqueref)
-      end
+    filtered = filtered.select do |vdi_opaqueref|
+      !check_vdi_is_iso(vdi_opaqueref) unless iso_cd == 'exclude'
+      check_vdi_is_iso(vdi_opaqueref) unless iso_cd == 'only'
+      true unless iso_cd == 'include'
     end
     Messages.success_nodesc_with_payload(filtered)
   end
@@ -632,7 +632,7 @@ class XenApi
 
   ##
   # Get detail of the specified VDI
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Reference
   def vdi_get_record(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
@@ -650,7 +650,7 @@ class XenApi
 
   ##
   # Resize the specified VDI
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Reference
   # +new_vdi_size+:: New Size of the VDI
   # FIXME: This is broken by the limitations of XMLRPC Library
@@ -668,7 +668,7 @@ class XenApi
 
   ##
   # Destroy the specified VDI
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Reference
   def vdi_destroy(vdi_opaqueref)
     if check_vdi_entity_validity(vdi_opaqueref)
@@ -681,7 +681,7 @@ class XenApi
 
   ##
   # Add a tag to the specified VDI
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Identifier
   # +tag+          :: Tag
   def vdi_add_tag(vdi_opaqueref, tag)
@@ -694,7 +694,7 @@ class XenApi
 
   ##
   # Unset VDI tags
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Identifier
   # +tag+          :: Tag
   def vdi_rm_tag(vdi_opaqueref, tag)
@@ -707,7 +707,7 @@ class XenApi
 
   ##
   # get VDI tags
-  # Params:
+  #
   # +vdi_opaqueref+:: VDI Identifier
   # +tag+          :: Tag
   # Returns:
@@ -724,8 +724,8 @@ class XenApi
   # Search VDI by tag
   # +tag+         :: Tag
   # Returns Matched VM
-  def vdi_search_by_tag(tag, no_iso_cd)
-    all_vdi = vdi_list(no_iso_cd)['Value']
+  def vdi_search_by_tag(tag)
+    all_vdi = vdi_list('include')['Value']
     result = all_vdi.select do |vdi_opaqueref|
       vdi_get_tags(vdi_opaqueref)['Value'].include?(tag)
     end
@@ -751,7 +751,7 @@ class XenApi
 
   ##
   # Create a Virtual Block Device (Plugged Instantly)
-  # Params:
+  #
   # +vm_opaqueref+:: VM Reference
   # +vdi_opaqueref+:: VDI Reference
   # +device_slot+:: VBD Device place

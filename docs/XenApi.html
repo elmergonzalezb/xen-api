@@ -280,7 +280,7 @@
 
         <div class="method-description">
           
-          <p>Initalize the API by login to XenServer. Params:</p>
+          <p>Initalize the API by login to XenServer.</p>
 <dl class="rdoc-list note-list"><dt><code>server_path</code>
 <dd>
 <p>Server Address</p>
@@ -749,7 +749,7 @@
 
         <div class="method-description">
           
-          <p>Cancel a task, important after Crashes Params:</p>
+          <p>Cancel a task, important after Crashes</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -786,7 +786,7 @@
 
         <div class="method-description">
           
-          <p>Destroy a task, important after working on a Async Task Params:</p>
+          <p>Destroy a task, important after working on a Async Task</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -823,7 +823,7 @@
 
         <div class="method-description">
           
-          <p>Task Errors Params:</p>
+          <p>Task Errors</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -860,7 +860,7 @@
 
         <div class="method-description">
           
-          <p>Get Task Record Params:</p>
+          <p>Get Task Record</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -897,7 +897,7 @@
 
         <div class="method-description">
           
-          <p>Task Result Params:</p>
+          <p>Task Result</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -934,7 +934,7 @@
 
         <div class="method-description">
           
-          <p>Task Status Params:</p>
+          <p>Task Status</p>
 <dl class="rdoc-list note-list"><dt><code>task_opaqueref</code>
 <dd>
 <p>Task Reference</p>
@@ -971,7 +971,7 @@
 
         <div class="method-description">
           
-          <p>Create a Virtual Block Device (Plugged Instantly) Params:</p>
+          <p>Create a Virtual Block Device (Plugged Instantly)</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -1091,7 +1091,7 @@
 
         <div class="method-description">
           
-          <p>Add a tag to the specified VDI Params:</p>
+          <p>Add a tag to the specified VDI</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Identifier</p>
@@ -1135,7 +1135,7 @@
 
         <div class="method-description">
           
-          <p>Destroy the specified VDI Params:</p>
+          <p>Destroy the specified VDI</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Reference</p>
@@ -1177,7 +1177,7 @@
 
         <div class="method-description">
           
-          <p>Get detail of the specified VDI Params:</p>
+          <p>Get detail of the specified VDI</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Reference</p>
@@ -1224,7 +1224,7 @@
 
         <div class="method-description">
           
-          <p>get VDI tags Params:</p>
+          <p>get VDI tags</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Identifier</p>
@@ -1261,7 +1261,7 @@
         
         <div class="method-heading">
           <span class="method-name">vdi_list</span><span
-            class="method-args">(no_iso_cd)</span>
+            class="method-args">(iso_cd)</span>
           
           <span class="method-click-advice">click to toggle source</span>
           
@@ -1271,9 +1271,9 @@
         <div class="method-description">
           
           <p>Get a list of all VDI</p>
-<dl class="rdoc-list note-list"><dt><code>no_iso_cd</code>
+<dl class="rdoc-list note-list"><dt><code>iso_cd</code>
 <dd>
-<p>Ignore ISO file?</p>
+<p>Ignore ISO file? possible values are inclue, exclude, only</p>
 </dd></dl>
           
           
@@ -1281,7 +1281,7 @@
           
           <div class="method-source-code" id="vdi_list-source">
             <pre><span class="ruby-comment"># File xenapi.rb, line 593</span>
-<span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_list</span>(<span class="ruby-identifier">no_iso_cd</span>)
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_list</span>(<span class="ruby-identifier">iso_cd</span>)
   <span class="ruby-identifier">all_records</span> = <span class="ruby-ivar">@connect</span>.<span class="ruby-identifier">call</span>(<span class="ruby-string">&#39;VDI.get_all&#39;</span>, <span class="ruby-ivar">@session</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-comment"># Filter Away Snapshots</span>
   <span class="ruby-identifier">no_snapshot</span> = <span class="ruby-identifier">all_records</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
@@ -1291,10 +1291,10 @@
   <span class="ruby-identifier">filtered</span> = <span class="ruby-identifier">no_snapshot</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
     <span class="ruby-operator">!</span><span class="ruby-identifier">check_vdi_is_xs_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
   <span class="ruby-keyword">end</span>
-  <span class="ruby-keyword">if</span> <span class="ruby-identifier">no_iso_cd</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">true</span>
-    <span class="ruby-identifier">filtered</span> = <span class="ruby-identifier">filtered</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
-      <span class="ruby-operator">!</span><span class="ruby-identifier">check_vdi_is_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>)
-    <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">filtered</span> = <span class="ruby-identifier">filtered</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
+    <span class="ruby-operator">!</span><span class="ruby-identifier">check_vdi_is_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">iso_cd</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;exclude&#39;</span>
+    <span class="ruby-identifier">check_vdi_is_iso</span>(<span class="ruby-identifier">vdi_opaqueref</span>) <span class="ruby-keyword">unless</span> <span class="ruby-identifier">iso_cd</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;only&#39;</span>
+    <span class="ruby-keyword">true</span> <span class="ruby-keyword">unless</span> <span class="ruby-identifier">iso_cd</span> <span class="ruby-operator">==</span> <span class="ruby-string">&#39;include&#39;</span>
   <span class="ruby-keyword">end</span>
   <span class="ruby-constant">Messages</span>.<span class="ruby-identifier">success_nodesc_with_payload</span>(<span class="ruby-identifier">filtered</span>)
 <span class="ruby-keyword">end</span></pre>
@@ -1397,7 +1397,7 @@
 
         <div class="method-description">
           
-          <p>Resize the specified VDI Params:</p>
+          <p>Resize the specified VDI</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Reference</p>
@@ -1447,7 +1447,7 @@
 
         <div class="method-description">
           
-          <p>Unset VDI tags Params:</p>
+          <p>Unset VDI tags</p>
 <dl class="rdoc-list note-list"><dt><code>vdi_opaqueref</code>
 <dd>
 <p>VDI Identifier</p>
@@ -1482,7 +1482,7 @@
         
         <div class="method-heading">
           <span class="method-name">vdi_search_by_tag</span><span
-            class="method-args">(tag, no_iso_cd)</span>
+            class="method-args">(tag)</span>
           
           <span class="method-click-advice">click to toggle source</span>
           
@@ -1504,8 +1504,8 @@
           
           <div class="method-source-code" id="vdi_search_by_tag-source">
             <pre><span class="ruby-comment"># File xenapi.rb, line 727</span>
-<span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_search_by_tag</span>(<span class="ruby-identifier">tag</span>, <span class="ruby-identifier">no_iso_cd</span>)
-  <span class="ruby-identifier">all_vdi</span> = <span class="ruby-identifier">vdi_list</span>(<span class="ruby-identifier">no_iso_cd</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">vdi_search_by_tag</span>(<span class="ruby-identifier">tag</span>)
+  <span class="ruby-identifier">all_vdi</span> = <span class="ruby-identifier">vdi_list</span>(<span class="ruby-string">&#39;include&#39;</span>)[<span class="ruby-string">&#39;Value&#39;</span>]
   <span class="ruby-identifier">result</span> = <span class="ruby-identifier">all_vdi</span>.<span class="ruby-identifier">select</span> <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">vdi_opaqueref</span><span class="ruby-operator">|</span>
     <span class="ruby-identifier">vdi_get_tags</span>(<span class="ruby-identifier">vdi_opaqueref</span>)[<span class="ruby-string">&#39;Value&#39;</span>].<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">tag</span>)
   <span class="ruby-keyword">end</span>
@@ -1772,7 +1772,7 @@
 
         <div class="method-description">
           
-          <p>Add “other config”, useful for official PV Instance template Params:</p>
+          <p>Add “other config”, useful for official PV Instance template</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -1819,7 +1819,7 @@
 
         <div class="method-description">
           
-          <p>Add a tag to the specified VM Params:</p>
+          <p>Add a tag to the specified VM</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -1864,7 +1864,7 @@
         <div class="method-description">
           
           <p>Clone the target Virtual Machine Returns the reference point of new vm
-APIDoc P111, Copy tends to be more guaranteed. Params:</p>
+APIDoc P111, Copy tends to be more guaranteed.</p>
 <dl class="rdoc-list note-list"><dt><code>old_vm_opaqueref</code>
 <dd>
 <p>Source VM Identifier</p>
@@ -1917,7 +1917,7 @@ APIDoc P111, Copy tends to be more guaranteed. Params:</p>
 
         <div class="method-description">
           
-          <p>Clone from PV Template TODO: Test Required Params:</p>
+          <p>Clone from PV Template TODO: Test Required</p>
 <dl class="rdoc-list note-list"><dt><code>vm_tpl_opaqueref</code>
 <dd>
 <p>Source Template Identifier</p>
@@ -2007,7 +2007,7 @@ APIDoc P111, Copy tends to be more guaranteed. Params:</p>
 
         <div class="method-description">
           
-          <p>Erase the target Virtual Machine, along with related VDIs Params:</p>
+          <p>Erase the target Virtual Machine, along with related VDIs</p>
 <dl class="rdoc-list note-list"><dt><code>old_vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -2065,7 +2065,7 @@ APIDoc P111, Copy tends to be more guaranteed. Params:</p>
 
         <div class="method-description">
           
-          <p>Get Various Runtime Detail about the VM Params:</p>
+          <p>Get Various Runtime Detail about the VM</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2116,8 +2116,7 @@ APIDoc P111, Copy tends to be more guaranteed. Params:</p>
         <div class="method-description">
           
           <p>Get VM Network IPs <a
-href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters">discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters</a>/
-Params:</p>
+href="http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters">discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters</a>/</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2159,7 +2158,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get Various Physical Details about the VM Params:</p>
+          <p>Get Various Physical Details about the VM</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2213,7 +2212,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get other_config field. Params:</p>
+          <p>Get other_config field.</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -2255,7 +2254,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get Virtual Machines Detail by OpaqueRef Params:</p>
+          <p>Get Virtual Machines Detail by OpaqueRef</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2310,7 +2309,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get VM tags Params:</p>
+          <p>Get VM tags</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -2356,7 +2355,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get Virtual Machines Detail by OpaqueRef Params:</p>
+          <p>Get Virtual Machines Detail by OpaqueRef</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2406,7 +2405,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get Block Devices of the specified VM Params:</p>
+          <p>Get Block Devices of the specified VM</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2447,7 +2446,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get Virtual Network Interfaces (VIFs) of the specified VM Params:</p>
+          <p>Get Virtual Network Interfaces (VIFs) of the specified VM</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2530,7 +2529,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Get all Templates Params:</p>
+          <p>Get all Templates</p>
 <dl class="rdoc-list note-list"><dt><code>pv</code>
 <dd>
 <p>Paravirtual Templates Only?</p>
@@ -2577,7 +2576,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Power OFF the specified Virtual Machine Params:</p>
+          <p>Power OFF the specified Virtual Machine</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2619,7 +2618,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Power ON the specified Virtual Machine Params:</p>
+          <p>Power ON the specified Virtual Machine</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2661,7 +2660,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Suspend the specified Virtual Machine Params:</p>
+          <p>Suspend the specified Virtual Machine</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2705,7 +2704,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Reboot the specified Virtual Machines Params:</p>
+          <p>Reboot the specified Virtual Machines</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2747,7 +2746,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Wake up the specified Virtual Machine Params:</p>
+          <p>Wake up the specified Virtual Machine</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Reference</p>
@@ -2791,7 +2790,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Unset “other config”, useful for official PV Instance template Params:</p>
+          <p>Unset “other config”, useful for official PV Instance template</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -2835,7 +2834,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>Unset VM tags Params:</p>
+          <p>Unset VM tags</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
@@ -2879,7 +2878,7 @@ Params:</p>
 
         <div class="method-description">
           
-          <p>search VM by tag Params:</p>
+          <p>search VM by tag</p>
 <dl class="rdoc-list note-list"><dt><code>tag</code>         
 <dd>
 <p>Tag</p>
@@ -3023,7 +3022,7 @@ WHAT THE HELL.</p>
 
         <div class="method-description">
           
-          <p>Set “other config”, useful for official PV Instance template Params:</p>
+          <p>Set “other config”, useful for official PV Instance template</p>
 <dl class="rdoc-list note-list"><dt><code>vm_opaqueref</code>
 <dd>
 <p>VM Identifier</p>
