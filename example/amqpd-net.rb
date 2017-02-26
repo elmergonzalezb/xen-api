@@ -17,21 +17,17 @@ class Rabbit
 
   # Core
   def start
-    puts ' [!] Waiting for messages. To exit press CTRL+C'
-    begin
-      queue_in.subscribe(block: true) do |_, properties, body|
-        Thread.new { Processor.process(body, properties.correlation_id) }
-      end
-    rescue Interrupt => _
-      @channel.close
-      @connection.close
+    queue_in.subscribe(block: true) do |_, properties, body|
+      Thread.new { Processor.process(body, properties.correlation_id) }
     end
+  rescue Interrupt => _
+    @channel.close
+    @connection.close
   end
 
   # Message Queue Publisher
   def publish(message, corr)
     @channel.default_exchange.publish(message, routing_key: queue_out.name, correlation_id: corr)
-    puts ' [x] SENT @ #{corr}'
     @channel.close
     @connection.close
   end

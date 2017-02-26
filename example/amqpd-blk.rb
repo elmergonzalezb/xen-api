@@ -17,21 +17,17 @@ class Rabbit
 
   # Core
   def start
-    puts ' [!] Waiting for messages. To exit press CTRL+C'
-    begin
-      queue_in.subscribe(block: true) do |_, properties, body|
-        Thread.new { Processor.process(body, properties.correlation_id) }
-      end
-    rescue Interrupt => _
-      @channel.close
-      @connection.close
+    queue_in.subscribe(block: true) do |_, properties, body|
+      Thread.new { Processor.process(body, properties.correlation_id) }
     end
+  rescue Interrupt => _
+    @channel.close
+    @connection.close
   end
 
   # Message Queue Publisher
   def publish(message, corr)
     @channel.default_exchange.publish(message, routing_key: queue_out.name, correlation_id: corr)
-    puts ' [x] SENT @ #{corr}'
     @channel.close
     @connection.close
   end
@@ -81,16 +77,18 @@ class Processor
           xenapi.vdi_get_record(payload)
         when 'do.vdi.resize'
           xenapi.vdi_resize(payload['vdi_ref'], payload['vdi_new_size'])
+        when 'get.vdi.tag'
+          xenapi.vdi_add_tag(payload['vdi_ref'])
         when 'set.vdi.tag'
-          xenapi.vdi_add_tag(payload['vm'], payload['tag'])
+          xenapi.vdi_add_tag(payload['vdi_ref'], payload['tag'])
         when 'no.set.vm.tag'
-          xenapi.vdi_rm_tag(payload['vm'], payload['tag'])
+          xenapi.vdi_rm_tag(payload['vdi_ref'], payload['tag'])
         when 'do.vdi.destroy'
           xenapi.vdi_destroy(payload)
         when 'get.vbd.all'
           xenapi.vbd_list
         when 'get.vbd.detail'
-          xenapi.vbd_get_detail(payload)
+          xenapi.vbd_get_detail2(payload)
         when 'do.vbd.create'
           xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
         else

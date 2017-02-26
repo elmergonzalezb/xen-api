@@ -112,6 +112,12 @@ class XenApi
       rescue NoMethodError
         true
       end
+      record['Value']['VIFs'].map! do |vif_ref|
+        vif_get_uuid(vif_ref)['Value']
+      end
+      record['Value']['VBDs'].map! do |vbd_ref|
+        vbd_get_uuid(vbd_ref)['Value']
+      end
       # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
       #    the JSON generator
       record['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
@@ -129,11 +135,11 @@ class XenApi
       Messages.error_not_permitted
     else
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
+      record = @connect.call('VM.get_record', @session, vm_opaqueref)
       begin
-        record['snapshot_time'] = record['snapshot_time'].to_time.to_s
+        record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
       rescue NoMethodError
-        record['snapshot_time'] = nil
+        record['Value']['snapshot_time'] = nil
       end
       # Output. return is redundant in Ruby World.
       Messages.success_nodesc_with_payload(record)
@@ -407,7 +413,7 @@ class XenApi
       vbd_sets = vm_get_vbds(old_vm_uuid, false)['Value']
       xvda_id = ''
       vbd_sets.each do |vbd_opaqueref|
-        record = vbd_get_detail(vbd_opaqueref)['Value']
+        record = vbd_get_detail2(vbd_opaqueref)['Value']
         next if record['type'] != 'Disk' || record['device'] != 'xvda'
         xvda_id = record['VDI']
       end
@@ -695,6 +701,9 @@ class XenApi
       rescue NoMethodError
         true
       end
+      record['Value']['VBDs'].map! do |vbd_ref|
+        vbd_get_uuid(vbd_ref)['Value']
+      end
       record
     end
   end
@@ -825,16 +834,23 @@ class XenApi
   end
 
   ##
-  # Get detail of the specified VBD by OpaqueRef
-  def vbd_get_detail(vbd_opaqueref)
-    @connect.call('VBD.get_record', @session, vbd_opaqueref)
+  # Get detail of the specified VBD by UUID
+  def vbd_get_detail(vbd_uuid)
+    vbd_opaqueref = vbd_get_ref(vbd_uuid)
+    if vbd_opaqueref.key?('Value')
+      record = @connect.call('VBD.get_record', @session, vbd_opaqueref['Value'])
+      record['Value']['VM'] = vm_get_uuid(record['Value']['VM'])['Value']
+      record['Value']['VDI'] = vdi_get_uuid(record['Value']['VDI'])['Value']
+      record
+    else
+      vbd_opaqueref
+    end
   end
 
   ##
-  # Get detail of the specified VBD by UUID
-  def vbd_get_detail2(vbd_uuid)
-    vbd_opaqueref = vbd_get_ref(vbd_uuid)
-    vbd_opaqueref.key?('Value') ? @connect.call('VBD.get_record', @session, vbd_opaqueref['Value']) : vbd_opaqueref
+  # Get detail of the specified VBD by OpaqueRef
+  def vbd_get_detail2(vbd_opaqueref)
+    @connect.call('VBD.get_record', @session, vbd_opaqueref)
   end
 
   ##
@@ -895,7 +911,14 @@ class XenApi
   # +vif_uuid+:: OpaqueRef of the VIF
   def vif_get_detail(vif_uuid)
     vif_opaqueref = vif_get_ref(vif_uuid)
-    vif_opaqueref.key?('Value') ? @connect.call('VIF.get_record', @session, vif_opaqueref['Value']) : vif_opaqueref
+    if vif_opaqueref.key?('Value')
+      record = @connect.call('VIF.get_record', @session, vif_opaqueref['Value'])
+      record['Value']['VM'] = vm_get_uuid(record['Value']['VM'])['Value']
+      record['Value']['network'] = network_get_uuid(record['Value']['network'])['Value']
+      record
+    else
+      vif_opaqueref
+    end
   end
 
   ##
@@ -978,7 +1001,15 @@ class XenApi
   # Get details of the network
   def network_get_detail(network_uuid)
     network_opaqueref = network_get_ref(network_uuid)
-    network_opaqueref.key?('Value') ? @connect.call('network.get_record', @session, network_opaqueref['Value']) : network_opaqueref
+    if network_opaqueref.key?('Value')
+      record = @connect.call('network.get_record', @session, network_opaqueref['Value'])
+      record['Value']['VIFs'].map! do |vif_ref|
+        vif_get_uuid(vif_ref)['Value']
+      end
+      record
+    else
+      network_opaqueref
+    end
   end
 
   ##

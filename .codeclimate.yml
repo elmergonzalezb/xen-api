@@ -2,17 +2,13 @@
 engines:
   bundler-audit:
     enabled: true
-  csslint:
-    enabled: false
   duplication:
     enabled: true
     config:
       languages:
       - ruby
-  eslint:
-    enabled: false
   fixme:
-    enabled: false
+    enabled: true
   rubocop:
     enabled: true
 ratings:
@@ -28,4 +24,3 @@ ratings:
   - "**.rb"
 exclude_paths:
 - "docs/"
-- "example/"
