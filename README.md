@@ -1,6 +1,6 @@
 ## XenServer API Adapter
 
-[ ![Codeship Status for nowhere-cloud/xen-api](https://app.codeship.com/projects/4d2a9250-d4a2-0134-07f4-1aaf05821783/status?branch=master)](https://app.codeship.com/projects/202210) [![Code Climate](https://codeclimate.com/github/nowhere-cloud/xen-api/badges/gpa.svg)](https://codeclimate.com/github/nowhere-cloud/xen-api) [![Issue Count](https://codeclimate.com/github/nowhere-cloud/xen-api/badges/issue_count.svg)](https://codeclimate.com/github/nowhere-cloud/xen-api)
+[![Code Climate](https://codeclimate.com/github/nowhere-cloud/xen-api/badges/gpa.svg)](https://codeclimate.com/github/nowhere-cloud/xen-api) [![Issue Count](https://codeclimate.com/github/nowhere-cloud/xen-api/badges/issue_count.svg)](https://codeclimate.com/github/nowhere-cloud/xen-api)
 
 This repository contains the source code of interacting a XenServer Hypervisor over its XML-RPC API.
 
