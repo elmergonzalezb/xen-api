@@ -819,8 +819,6 @@ class XenApi
 
   #---
   # Collection: VBD (Virtual Block Devices)
-  # TODO: Documentation, but usually VBD is lessly used
-  # WARN: DO NOT Convert to UUID-based
   #---
 
   ##
