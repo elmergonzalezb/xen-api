@@ -7,6 +7,19 @@ require 'xmlrpc/client'
 require './messages.rb'
 
 ##
+# Overriding with Monkey-Patching the CONSTANT
+# https://stackoverflow.com/questions/1263702/how-to-do-a-wiredump-of-xmlrpcclient-in-ruby
+module XMLRPC
+  ##
+  # This module store config in a module...
+  module Config
+    ##
+    # Disable SignedInt Check
+    ENABLE_BIGINT = true
+  end
+end
+
+##
 # XenApi Session Manager
 class XenApi
   ##
@@ -16,18 +29,18 @@ class XenApi
   # +server_port+:: Server API Port, useful while oeprate over SSH
   # +username+   :: Username, usually _root_
   # +password+   :: Password, the password!
-  def initialize(server_path, server_port = 443, username = 'root', password)
+  def initialize(server_path, server_port = 443, use_ssl = true, username = 'root', password)
     # This is where the connection is made
     # https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/
     connection_param = {
       host: server_path,
       port: server_port,
-      use_ssl: true,
+      use_ssl: use_ssl,
       path: '/'
     }
     @connect = XMLRPC::Client.new_from_hash(connection_param)
     # This is the SSL Check Bypassing Mechanism
-    @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless use_ssl == false
     @session = @connect.call('session.login_with_password', username, password)['Value']
   end
 
@@ -50,44 +63,47 @@ class XenApi
   # Get All Virtual Machines
   # Using list instead to circumvent RuboCop
   def vm_list_all
-    all_records = @connect.call('VM.get_all', @session)['Value']
+    all_records = @connect.call('VM.get_all', @session)
     # Filter Away Control Domain
-    no_dom0 = all_records.select do |vm_opaqueref|
+    all_records['Value'].select! do |vm_opaqueref|
       !check_vm_entity_is_dom0(vm_opaqueref)
     end
     # Filter Away Template
-    filtered = no_dom0.select do |vm_opaqueref|
+    all_records['Value'].select! do |vm_opaqueref|
       !check_vm_entity_is_template(vm_opaqueref)
     end
-    Messages.success_nodesc_with_payload(filtered)
+    all_records['Value'].map! do |ref|
+      vm_get_uuid(ref)['Value']
+    end
+    all_records
   end
 
   ##
   # Get all Templates
-  #
-  # +pv+:: Paravirtual Templates Only?
-  def vm_list_all_templates(pv)
-    all_records = @connect.call('VM.get_all', @session)['Value']
+  def vm_list_all_templates
+    all_records = @connect.call('VM.get_all', @session)
     # Filter Away non-template (VM Instances + dom0)
-    all_templates = all_records.select do |tpl_opaqueref|
+    all_records['Value'].select! do |tpl_opaqueref|
       check_vm_entity_is_template(tpl_opaqueref)
     end
-    if pv == true
-      all_templates = all_templates.select do |tpl_opaqueref|
-        check_vm_entity_is_paravirtual(tpl_opaqueref)
-      end
+    all_records['Value'].select! do |tpl_opaqueref|
+      check_vm_entity_is_paravirtual(tpl_opaqueref)
     end
-    Messages.success_nodesc_with_payload(all_templates)
+    all_records['Value'].map! do |ref|
+      vm_get_uuid(ref)['Value']
+    end
+    all_records
   end
 
   ##
   # Get Virtual Machines Detail by OpaqueRef
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_record(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_get_record(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
       # Post processing
       # 1. Decode Time Object to Human-readable
@@ -99,8 +115,6 @@ class XenApi
       # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
       #    the JSON generator
       record['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
-      # 3. Parse Recommendations into Hash, using oga
-      record['recommendations'] = xml_parse(record['recommendations'])
       # Output. return is redundant in Ruby World.
       Messages.success_nodesc_with_payload(record)
     end
@@ -109,14 +123,13 @@ class XenApi
   ##
   # Get Virtual Machines Detail by OpaqueRef
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_template_record(vm_opaqueref)
-    if check_vm_entity_is_nonexist(vm_opaqueref) || check_vm_entity_is_dom0(vm_opaqueref) || vm_opaqueref == '' || vm_opaqueref.nil?
+  # +vm_uuid+:: VM Reference
+  def vm_get_template_record(vm_uuid)
+    if check_vm_template_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
-      record['recommendations'] = xml_parse(record['recommendations'])
-      record['other_config']['disks'] = xml_parse(record['other_config']['disks'])
       begin
         record['snapshot_time'] = record['snapshot_time'].to_time.to_s
       rescue NoMethodError
@@ -130,11 +143,12 @@ class XenApi
   ##
   # Get Various Physical Details about the VM
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_metrics(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_get_metrics(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       ref = @connect.call('VM.get_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
@@ -155,11 +169,12 @@ class XenApi
   ##
   # Get Various Runtime Detail about the VM
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_guest_metrics(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_get_guest_metrics(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_guest_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
@@ -176,11 +191,12 @@ class XenApi
   # Get VM Network IPs
   # http://discussions.citrix.com/topic/244784-how-to-get-ip-address-of-vm-network-adapters/
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_guest_metrics_network(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_get_guest_metrics_network(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
       @connect.call('VM_guest_metrics.get_networks', @session, ref)
     end
@@ -189,35 +205,52 @@ class XenApi
   ##
   # Get Block Devices of the specified VM
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_vbds(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  # +uuid_mode+:: Use UUID Mode?
+  def vm_get_vbds(vm_uuid, uuid_mode)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      @connect.call('VM.get_VBDs', @session, vm_opaqueref)
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+      vbds = @connect.call('VM.get_VBDs', @session, vm_opaqueref)
     end
+    if uuid_mode == true && vbds['Status'] == 'Success' && vbds['Value'].empty? == false
+      vbds['Value'].map! do |ref|
+        vbd_get_uuid(ref)['Value']
+      end
+    end
+    vbds
   end
 
   ##
   # Get Virtual Network Interfaces (VIFs) of the specified VM
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_get_vifs(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  # +uuid_mode+:: Use UUID Mode?
+  def vm_get_vifs(vm_uuid, uuid_mode)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      @connect.call('VM.get_VIFs', @session, vm_opaqueref)
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+      vifs = @connect.call('VM.get_VIFs', @session, vm_opaqueref)
     end
+    if uuid_mode == true && vifs['Status'] == 'Success' && vifs['Value'].empty? == false
+      vifs['Value'].map! do |ref|
+        vif_get_uuid(ref)['Value']
+      end
+    end
+    vifs
   end
 
   ##
   # Power ON the specified Virtual Machine
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_power_on(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_power_on(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       task_token = @connect.call('Async.VM.start', @session, vm_opaqueref, false, false)
       async_task_manager(task_token, false)
     end
@@ -226,11 +259,12 @@ class XenApi
   ##
   # Power OFF the specified Virtual Machine
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_power_off(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_power_off(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       task_token = @connect.call('Async.VM.shutdown', @session, vm_opaqueref)
       async_task_manager(task_token, false)
     end
@@ -239,11 +273,12 @@ class XenApi
   ##
   # Reboot the specified Virtual Machines
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_power_reboot(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_power_reboot(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       task_token = @connect.call('Async.VM.hard_reboot', @session, vm_opaqueref)
       async_task_manager(task_token, false)
     end
@@ -252,11 +287,12 @@ class XenApi
   ##
   # Suspend the specified Virtual Machine
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_power_pause(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_power_pause(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       # API Manual P116
       # void suspend (session_id s, VM ref vm)
       task_token = @connect.call('Async.VM.suspend', @session, vm_opaqueref)
@@ -267,11 +303,12 @@ class XenApi
   ##
   # Wake up the specified Virtual Machine
   #
-  # +vm_opaqueref+:: VM Reference
-  def vm_power_unpause(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: VM Reference
+  def vm_power_unpause(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       # API Manual P116-117
       # void resume (session_id s, VM ref vm, bool start_paused, bool force)
       task_token = @connect.call('Async.VM.resume', @session, vm_opaqueref, false, false)
@@ -284,21 +321,22 @@ class XenApi
   # Returns the reference point of new vm
   # APIDoc P111, Copy tends to be more guaranteed.
   #
-  # +old_vm_opaqueref+:: Source VM Identifier
+  # +old_vm_uuid+:: Source VM UUID
   # +new_vm_name+     :: Name of the new VM
   # Returns:
   # the record of new vm
-  def vm_clone(old_vm_opaqueref, new_vm_name)
-    if check_vm_entity_validity(old_vm_opaqueref) || new_vm_name.nil? || new_vm_name == ''
+  def vm_clone(old_vm_uuid, new_vm_name)
+    if check_vm_entity_validity(old_vm_uuid) || new_vm_name.nil? || new_vm_name == ''
       Messages.error_not_permitted
     else
+      old_vm_opaqueref = vm_get_ref(old_vm_uuid)['Value']
       # The NULL Reference is required to fulfill the requirement.
       task_token = @connect.call('Async.VM.copy', @session, old_vm_opaqueref, new_vm_name, 'OpaqueRef:NULL')
       result = async_task_manager(task_token, true)
       if result.key?('Status') && result['Status'] == 'Error'
         result
       else
-        Messages.success_nodesc_with_payload(result['value'])
+        Messages.success_nodesc_with_payload(vm_get_uuid(result['value'])['Value'])
       end
     end
   end
@@ -306,47 +344,51 @@ class XenApi
   ##
   # Clone from PV Template
   #
-  # +vm_tpl_opaqueref+:: Source Template Identifier
+  # +vm_tpl_uuid+:: Source Template UUID
   # +new_vm_name+          :: Name of the new VM
   # +pv_boot_param+        :: Boot Command Line
   # +repo_url+             :: URL of the Distro Repo
   # +distro+               :: Distro Family, acceptable values are _debian_ and _rhel_
   # +distro_release+       :: Release Name of the specified Debian/Ubuntu Release. example: _jessie_(Debian 8), _trusty_(Ubuntu 14.04)
   # Returns: The record of new vm
-  def vm_clone_from_template(vm_tpl_opaqueref, new_vm_name, pv_boot_param, repo_url, distro, distro_release, net_opaqueref)
-    if check_vm_template_validity(vm_tpl_opaqueref) || new_vm_name.nil? || new_vm_name == ''
+  def vm_clone_from_template(vm_tpl_uuid, new_vm_name, pv_boot_param, repo_url, distro, distro_release, network_uuid, dsk_size)
+    if check_vm_template_validity(vm_tpl_uuid) || new_vm_name.nil? || new_vm_name == '' || repo_url.start_with?('https://')
       Messages.error_not_permitted
     else
+      vm_tpl_opaqueref = vm_get_ref(vm_tpl_uuid)['Value']
       # Step0.1: Copy from template.
       # The NULL Reference is required to fulfill the params requirement.
-      task_token = @connect.call('Async.VM.copy', @session, vm_tpl_opaqueref, new_vm_name, 'OpaqueRef:NULL')
+      default_sr = sr_get_default['Value']
+      task_token = @connect.call('Async.VM.copy', @session, vm_tpl_opaqueref, new_vm_name, default_sr['REF'])
       # Step0.2: get new vm reference point
       result = async_task_manager(task_token, true)['value']
+      vmuuid = vm_get_uuid(result)['Value']
+      disk = '<provision><disk device=\'0\' size=\'' + dsk_size.to_s + '\' sr=\'' + default_sr['UUID'] + '\' bootable=\'true\' type=\'system\'/></provision>'
+      vm_set_other_config(vmuuid, 'disks', disk)
       # Step 1 : Set boot paramaters, For configuring the kickstart definition
+      @connect.call('VM.provision', @session, result)
       @connect.call('VM.set_PV_args', @session, result, pv_boot_param)
-      # Step 2 : Set repository URL, important for install
-      #          Always skip step if previous step has error
+      # Step 2 : Set repository URL, important for install. Always skip step if previous step has error
       #     2.1: Handling Debian-based
-      if distro == 'debian'
+      if distro == 'debianlike' || distro == 'rhlike' || distro == 'sleslike'
         # Set New Value
-        s = vm_set_other_config(result, 'debian-release', distro_release)
-        s = vm_set_other_config(result, 'install-repository', repo_url) unless s['Status'] != 'Success'
-        #     2.2: Handling EL (RH-related, like Fedora, CentOS, RHEL)
-      elsif distro == 'rhel' || distro == 'sle'
-        s = vm_set_other_config(result, 'install-repository', repo_url)
+        s = vm_set_other_config(vmuuid, 'install-repository', repo_url)
+        unless s['Status'] != 'Success'
+          s = vm_set_other_config(vmuuid, 'debian-release', distro_release) if distro == 'debianlike'
+        end
       # Other distro is HVM so we ignore it.
       else
         Messages.error_unsupported
       end
       if s['Status'] == 'Error'
-        Messages.error_unknown(s['ErrorDescription'])
+        Messages.error_unknown(s)
       else
-        s = vif_create(result, net_opaqueref, 0)
+        s = vif_create(vmuuid, network_uuid, 0)
         if s['Status'] == 'Error'
-          Messages.error_unknown(s['ErrorDescription'])
+          Messages.error_unknown(s)
         else
           # callback the new vm OpaqueRef
-          Messages.success_nodesc_with_payload(result)
+          Messages.success_nodesc_with_payload(vm_get_uuid(result)['Value'])
         end
       end
     end
@@ -355,13 +397,14 @@ class XenApi
   ##
   # Erase the target Virtual Machine, along with related VDIs
   #
-  # +old_vm_opaqueref+:: VM Identifier
-  def vm_destroy(old_vm_opaqueref)
-    if check_vm_entity_validity(old_vm_opaqueref)
+  # +old_vm_uuid+:: VM UUID
+  def vm_destroy(old_vm_uuid)
+    if check_vm_entity_validity(old_vm_uuid)
       Messages.error_not_permitted
     else
+      old_vm_opaqueref = vm_get_ref(old_vm_uuid)['Value']
       # Get /dev/xvda VDI Reference Code First.
-      vbd_sets = vm_get_vbds(old_vm_opaqueref)['Value']
+      vbd_sets = vm_get_vbds(old_vm_uuid, false)['Value']
       xvda_id = ''
       vbd_sets.each do |vbd_opaqueref|
         record = vbd_get_detail(vbd_opaqueref)['Value']
@@ -373,7 +416,7 @@ class XenApi
       result = async_task_manager(task_token, false)
       if result['Status'] == 'Success'
         # Delete VM OK => Cleanup residue: /dev/xvda VDI
-        vdi_destroy(xvda_id)
+        vdi_destroy2(xvda_id)
       else
         # Prompt Error on Deleting VM
         result
@@ -382,68 +425,56 @@ class XenApi
   end
 
   ##
-  # Add "other config", useful for official PV Instance template
+  # Add 'other config', useful for official PV Instance template
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +key+         :: Config Key
   # +value+       :: Config Value
-  def vm_add_other_config(vm_opaqueref, key, value)
-    if check_vm_entity_validity(vm_opaqueref)
-      Messages.error_not_permitted
-    else
-      @connect.call('VM.add_to_other_config', @session, vm_opaqueref, key, value)
-    end
+  def vm_add_other_config(vm_uuid, key, value)
+    vm_opaqueref = vm_get_ref(vm_uuid)
+    vm_opaqueref.key?('Value') ? @connect.call('VM.add_to_other_config', @session, vm_opaqueref['Value'], key, value) : vm_opaqueref
   end
 
   ##
-  # Unset "other config", useful for official PV Instance template
+  # Unset 'other config', useful for official PV Instance template
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +key+         :: Config Key
-  def vm_rm_other_config(vm_opaqueref, key)
-    if check_vm_entity_validity(vm_opaqueref)
-      Messages.error_not_permitted
-    else
-      @connect.call('VM.remove_from_other_config', @session, vm_opaqueref, key)
-    end
+  def vm_rm_other_config(vm_uuid, key)
+    vm_opaqueref = vm_get_ref(vm_uuid)
+    vm_opaqueref.key?('Value') ? @connect.call('VM.remove_from_other_config', @session, vm_opaqueref['Value'], key) : vm_opaqueref
   end
 
   ##
   # Get other_config field.
   #
-  # +vm_opaqueref+:: VM Identifier
-  def vm_get_other_config(vm_opaqueref)
-    record = vm_get_record(vm_opaqueref)
-    if record['Status'] != 'Success'
-      record
-    else
-      Messages.success_nodesc_with_payload(record['Value']['other_config'])
-    end
+  # +vm_uuid+:: VM UUID
+  def vm_get_other_config(vm_uuid)
+    vm_opaqueref = vm_get_ref(vm_uuid)
+    vm_opaqueref.key?('Value') ? @connect.call('VM.get_other_config', @session, vm_opaqueref['Value']) : vm_opaqueref
   end
 
   ##
-  # Set "other config", useful for official PV Instance template
+  # Set 'other config', useful for official PV Instance template
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +key+         :: Config Key
   # +value+       :: Config Value
-  def vm_set_other_config(vm_opaqueref, key, value)
-    if check_vm_entity_validity(vm_opaqueref)
-      Messages.error_not_permitted
-    else
-      @connect.call('VM.add_to_other_config', @session, vm_opaqueref, key.to_s => value.to_s)
-    end
+  def vm_set_other_config(vm_uuid, key, value)
+    s = vm_rm_other_config(vm_uuid, key)
+    s.key?('Value') ? vm_add_other_config(vm_uuid, key, value) : s
   end
 
   ##
   # Add a tag to the specified VM
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
-  def vm_add_tag(vm_opaqueref, tag)
-    if check_vm_entity_validity(vm_opaqueref)
+  def vm_add_tag(vm_uuid, tag)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       @connect.call('VM.add_tags', @session, vm_opaqueref, tag)
     end
   end
@@ -451,12 +482,13 @@ class XenApi
   ##
   # Unset VM tags
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
-  def vm_rm_tag(vm_opaqueref, tag)
-    if check_vm_entity_validity(vm_opaqueref)
+  def vm_rm_tag(vm_uuid, tag)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       @connect.call('VM.remove_tags', @session, vm_opaqueref, tag)
     end
   end
@@ -464,13 +496,14 @@ class XenApi
   ##
   # Get VM tags
   #
-  # +vm_opaqueref+:: VM Identifier
+  # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
   # Returns: Tags
-  def vm_get_tags(vm_opaqueref)
-    if check_vm_entity_validity(vm_opaqueref)
+  def vm_get_tags(vm_uuid)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       @connect.call('VM.get_tags', @session, vm_opaqueref)
     end
   end
@@ -482,7 +515,8 @@ class XenApi
   # Returns Matched VM
   def vm_search_by_tag(tag)
     all_vm = vm_list_all
-    all_vm['Value'].select do |vm_opaqueref|
+    all_vm['Value'].select do |vm_uuid|
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       vm_get_tags(vm_opaqueref)['Value'].include?(tag)
     end
   end
@@ -490,27 +524,26 @@ class XenApi
   ##
   # Set VM Name
   #
-  # +vm_opaqueref+:: VM OpaqueRef
+  # +vm_uuid+:: VM OpaqueRef
   # +vm_name+:: VM Name
-  def vm_set_name(vm_opaqueref, vm_name)
-    if check_vm_entity_validity(vm_opaqueref)
+  def vm_set_name(vm_uuid, vm_name)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       @connect.call('VM.set_name_label', @session, vm_opaqueref, vm_name)
     end
   end
 
   ##
   # Set VM Memory Size
-  # +vm_opaqueref+:: VM OpaqueRef
+  # +vm_uuid+:: VM OpaqueRef
   # +max_size+:: Memory Capacity
-  # +min_size+:: Memory Baseline
-  #
-  # FIXME: XMLRPC Library only accepts 32-bit SignedInt. 2147483648 (2GB actual value) will cause RuntimeError: Integer is too big! Must be signed 32-bit integer!
-  def vm_set_max_ram(vm_opaqueref, max_size)
-    if check_vm_entity_validity(vm_opaqueref)
+  def vm_set_max_ram(vm_uuid, max_size)
+    if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       begin
         @connect.call('VM.set_memory_static_max', @session, vm_opaqueref, max_size.to_i)
         @connect.call('VM.set_memory_dynamic_max', @session, vm_opaqueref, max_size.to_i)
@@ -518,6 +551,18 @@ class XenApi
         Messages.error_unsupported
       end
     end
+  end
+
+  ##
+  # Get VM uuid
+  def vm_get_uuid(vm_opaqueref)
+    @connect.call('VM.get_uuid', @session, vm_opaqueref)
+  end
+
+  ##
+  # Get VDI OpaqueRef
+  def vm_get_ref(vm_uuid)
+    @connect.call('VM.get_by_uuid', @session, vm_uuid)
   end
 
   #---
@@ -587,53 +632,63 @@ class XenApi
   # Get a list of all VDI
   # +iso_cd+:: Ignore ISO file? possible values are inclue, exclude, only
   def vdi_list(iso_cd)
-    all_records = @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)
     # Filter Away Snapshots
-    no_snapshot = all_records.select do |vdi_opaqueref|
+    all_records['Value'].select! do |vdi_opaqueref|
       !check_vdi_is_a_snapshot(vdi_opaqueref)
     end
     # Filter Away XS-Tools
-    filtered = no_snapshot.select do |vdi_opaqueref|
+    all_records['Value'].select! do |vdi_opaqueref|
       !check_vdi_is_xs_iso(vdi_opaqueref)
     end
-    filtered = filtered.select do |vdi_opaqueref|
-      !check_vdi_is_iso(vdi_opaqueref) unless iso_cd == 'exclude'
-      check_vdi_is_iso(vdi_opaqueref) unless iso_cd == 'only'
-      true unless iso_cd == 'include'
+    all_records['Value'].select! do |vdi_opaqueref|
+      !check_vdi_is_iso(vdi_opaqueref) if iso_cd == 'exclude'
+      check_vdi_is_iso(vdi_opaqueref) if iso_cd == 'only'
+      true if iso_cd == 'include'
     end
-    Messages.success_nodesc_with_payload(filtered)
+    all_records['Value'].map! do |ref|
+      vdi_get_uuid(ref)['Value']
+    end
+    all_records
   end
 
   ##
   # Get a list of all Snapshot VDI
   def vdi_list_snapshot
-    all_records = @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)
     # Filter Away Snapshots
-    filtered = all_records.select do |vdi_opaqueref|
+    all_records['Value'].select! do |vdi_opaqueref|
       check_vdi_is_a_snapshot(vdi_opaqueref)
     end
-    Messages.success_nodesc_with_payload(filtered)
+    all_records['Value'].map! do |ref|
+      vdi_get_uuid(ref)['Value']
+    end
+    all_records
   end
 
   ##
   # Get XS-TOOLS VDI
   def vdi_list_tools
-    all_records = @connect.call('VDI.get_all', @session)['Value']
+    all_records = @connect.call('VDI.get_all', @session)
     # Filter Away all butXS-Tools
-    filtered = all_records.select do |vdi_opaqueref|
+    all_records['Value'].select! do |vdi_opaqueref|
       check_vdi_is_xs_iso(vdi_opaqueref)
     end
-    Messages.success_nodesc_with_payload(filtered)
+    all_records['Value'].map! do |ref|
+      vdi_get_uuid(ref)['Value']
+    end
+    all_records
   end
 
   ##
   # Get detail of the specified VDI
   #
-  # +vdi_opaqueref+:: VDI Reference
-  def vdi_get_record(vdi_opaqueref)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  # +vdi_uuid+:: VDI Reference
+  def vdi_get_record(vdi_uuid)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
+      vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
       record = @connect.call('VDI.get_record', @session, vdi_opaqueref)
       begin
         record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
@@ -647,14 +702,14 @@ class XenApi
   ##
   # Resize the specified VDI
   #
-  # +vdi_opaqueref+:: VDI Reference
+  # +vdi_uuid+:: VDI Reference
   # +new_vdi_size+:: New Size of the VDI
-  # FIXME: This is broken by the limitations of XMLRPC Library
-  def vdi_resize(vdi_opaqueref, new_vdi_size)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  def vdi_resize(vdi_uuid, new_vdi_size)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
       begin
+        vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
         @connect.call('VDI.resize_online', @session, vdi_opaqueref, new_vdi_size)
       rescue RuntimeError
         Messages.error_unsupported
@@ -663,56 +718,65 @@ class XenApi
   end
 
   ##
-  # Destroy the specified VDI
+  # Destroy the specified VDI, by UUID
   #
-  # +vdi_opaqueref+:: VDI Reference
-  def vdi_destroy(vdi_opaqueref)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  # +vdi_uuid+:: VDI Reference
+  def vdi_destroy(vdi_uuid)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
-      vdi_task_token = @connect.call('Async.VDI.destroy', @session, vdi_opaqueref)
+      vdi_task_token = @connect.call('Async.VDI.destroy', @session, vdi_get_ref(vdi_uuid)['Value'])
       async_task_manager(vdi_task_token, false)
     end
   end
 
   ##
+  # Destroy the specified VDI, by REF
+  #
+  # +vdi_opaqueref+:: VDI Reference
+  def vdi_destroy2(vdi_opaqueref)
+    vdi_task_token = @connect.call('Async.VDI.destroy', @session, vdi_opaqueref)
+    async_task_manager(vdi_task_token, false)
+  end
+
+  ##
   # Add a tag to the specified VDI
   #
-  # +vdi_opaqueref+:: VDI Identifier
+  # +vdi_uuid+:: VDI UUID
   # +tag+          :: Tag
-  def vdi_add_tag(vdi_opaqueref, tag)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  def vdi_add_tag(vdi_uuid, tag)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
-      @connect.call('VDI.add_tags', @session, vdi_opaqueref, tag)
+      @connect.call('VDI.add_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
     end
   end
 
   ##
   # Unset VDI tags
   #
-  # +vdi_opaqueref+:: VDI Identifier
+  # +vdi_uuid+:: VDI UUID
   # +tag+          :: Tag
-  def vdi_rm_tag(vdi_opaqueref, tag)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  def vdi_rm_tag(vdi_uuid, tag)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
-      @connect.call('VDI.remove_tags', @session, vdi_opaqueref, tag)
+      @connect.call('VDI.remove_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
     end
   end
 
   ##
   # get VDI tags
   #
-  # +vdi_opaqueref+:: VDI Identifier
+  # +vdi_uuid+:: VDI UUID
   # +tag+          :: Tag
   # Returns:
   # Tags
-  def vdi_get_tags(vdi_opaqueref)
-    if check_vdi_entity_validity(vdi_opaqueref)
+  def vdi_get_tags(vdi_uuid)
+    if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
-      @connect.call('VDI.get_tags', @session, vdi_opaqueref)
+      @connect.call('VDI.get_tags', @session, vdi_get_ref(vdi_uuid)['Value'])
     end
   end
 
@@ -722,27 +786,55 @@ class XenApi
   # Returns Matched VM
   def vdi_search_by_tag(tag)
     all_vdi = vdi_list('include')['Value']
-    result = all_vdi.select do |vdi_opaqueref|
+    result = all_vdi.select do |vdi_uuid|
+      vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
       vdi_get_tags(vdi_opaqueref)['Value'].include?(tag)
     end
+    result.map! do |ref|
+      vdi_get_uuid(ref)['Value']
+    end
     Messages.success_nodesc_with_payload(result)
+  end
+
+  ##
+  # Get VDI uuid
+  def vdi_get_uuid(vbd_opaqueref)
+    @connect.call('VDI.get_uuid', @session, vbd_opaqueref)
+  end
+
+  ##
+  # Get VDI OpaqueRef
+  def vdi_get_ref(vbd_uuid)
+    @connect.call('VDI.get_by_uuid', @session, vbd_uuid)
   end
 
   #---
   # Collection: VBD (Virtual Block Devices)
   # TODO: Documentation, but usually VBD is lessly used
+  # WARN: DO NOT Convert to UUID-based
   #---
 
   ##
   # Get all VBD on the system
   def vbd_list
-    @connect.call('VBD.get_all', @session)
+    result = @connect.call('VBD.get_all', @session)
+    result['Value'].map! do |ref|
+      vbd_get_uuid(ref)['Value']
+    end
+    result
   end
 
   ##
-  # Get detail of the specified VBD
+  # Get detail of the specified VBD by OpaqueRef
   def vbd_get_detail(vbd_opaqueref)
     @connect.call('VBD.get_record', @session, vbd_opaqueref)
+  end
+
+  ##
+  # Get detail of the specified VBD by UUID
+  def vbd_get_detail2(vbd_uuid)
+    vbd_opaqueref = vbd_get_ref(vbd_uuid)
+    vbd_opaqueref.key?('Value') ? @connect.call('VBD.get_record', @session, vbd_opaqueref['Value']) : vbd_opaqueref
   end
 
   ##
@@ -751,19 +843,37 @@ class XenApi
   # +vm_opaqueref+:: VM Reference
   # +vdi_opaqueref+:: VDI Reference
   # +device_slot+:: VBD Device place
-  def vbd_create(vm_opaqueref, vdi_opaqueref, device_slot)
-    vbd_object = {
-      VM: vm_opaqueref,
-      VDI: vdi_opaqueref,
-      userdevice: device_slot,
-      bootable: false,
-      mode: 'RW',
-      type: 'Disk',
-      empty: false,
-      qos_algorithm_type: '', # TODO!
-      qos_algorithm_params: '' # TODO!
-    }
-    @connect.call('VBD.create', @session, vbd_object)
+  def vbd_create(vm_uuid, vdi_uuid, device_slot)
+    if check_vm_entity_validity(vm_uuid) || check_vdi_entity_validity(vdi_uuid)
+      Messages.error_not_permitted
+    else
+      vbd_object = {
+        VM: vm_get_ref(vm_uuid)['Value'],
+        VDI: vdi_get_ref(vdi_uuid)['Value'],
+        userdevice: device_slot,
+        bootable: false,
+        mode: 'RW',
+        type: 'Disk',
+        empty: false,
+        qos_algorithm_type: '',
+        qos_algorithm_params: {}
+      }
+      result = @connect.call('VBD.create', @session, vbd_object)
+      result['Value'] = vbd_get_uuid(result['Value'])['Value']
+      result
+    end
+  end
+
+  ##
+  # Get VBD uuid
+  def vbd_get_uuid(vbd_opaqueref)
+    @connect.call('VBD.get_uuid', @session, vbd_opaqueref)
+  end
+
+  ##
+  # Get VBD OpaqueRef
+  def vbd_get_ref(vbd_uuid)
+    @connect.call('VBD.get_by_uuid', @session, vbd_uuid)
   end
 
   #---
@@ -773,58 +883,81 @@ class XenApi
   ##
   # List all VIF
   def vif_list
-    @connect.call('VIF.get_all', @session)
+    result = @connect.call('VIF.get_all', @session)
+    result['Value'].map! do |ref|
+      vif_get_uuid(ref)['Value']
+    end
+    result
   end
 
   ##
   # Get details of the specified VIF
-  # +vif_opaqueref+:: OpaqueRef of the VIF
-  def vif_get_detail(vif_opaqueref)
-    @connect.call('VIF.get_record', @session, vif_opaqueref)
+  # +vif_uuid+:: OpaqueRef of the VIF
+  def vif_get_detail(vif_uuid)
+    vif_opaqueref = vif_get_ref(vif_uuid)
+    vif_opaqueref.key?('Value') ? @connect.call('VIF.get_record', @session, vif_opaqueref['Value']) : vif_opaqueref
   end
 
   ##
   # Create a VIF
-  # +vm_opaqueref+:: OpaqueRef of target VM
-  # +net_opaqueref+:: Network to be plugged
-  # +slot+:: Where the VIF is "inserted"
-  def vif_create(vm_opaqueref, net_opaqueref, slot)
-    if check_vm_entity_validity(vm_opaqueref)
+  # +vm_uuid+:: OpaqueRef of target VM
+  # +net_uuid+:: Network to be plugged
+  # +slot+:: Where the VIF is 'inserted'
+  def vif_create(vm_uuid, net_uuid, slot)
+    net_opaqueref = network_get_ref(net_uuid)
+    if check_vm_entity_validity(vm_uuid) || net_opaqueref['Status'] != 'Success'
       Messages.error_not_permitted
     else
       vbd_object = {
-        device: slot.to_i,
-        network: net_opaqueref,
-        VM: vm_opaqueref,
-        MAC: random_mac,
-        MTU: 1500,
+        device: slot.to_s,
+        network: net_opaqueref['Value'],
+        VM: vm_get_ref(vm_uuid)['Value'],
+        MAC: '',
+        MTU: '1500',
         other_config: {},
-        qos_algorithm_type: '', # TODO!
-        qos_algorithm_params: '' # TODO!
+        qos_algorithm_type: '',
+        qos_algorithm_params: {}
       }
-      @connect.call('VIF.create', @session, vbd_object)
+      result = @connect.call('VIF.create', @session, vbd_object)
+      result.key?('Value') ? result['Value'] = vif_get_uuid(result['Value'])['Value'] : nil
+      result
     end
   end
 
   ##
   # Destroy the specified VIF
-  # +vif_opaqueref+:: OpaqueRef of the VIF
-  def vif_destroy(vif_opaqueref)
-    @connect.call('VIF.destroy', @session, vif_opaqueref)
+  # +vif_uuid+:: OpaqueRef of the VIF
+  def vif_destroy(vif_uuid)
+    vif_opaqueref = vif_get_ref(vif_uuid)
+    vif_opaqueref.key?('Value') ? @connect.call('VIF.destroy', @session, vif_opaqueref['Value']) : vif_opaqueref
   end
 
   ##
   # Plug the VIF
-  # +vif_opaqueref+:: OpaqueRef of the VIF
-  def vif_plug(vif_opaqueref)
-    @connect.call('VIF.plug', @session, vif_opaqueref)
+  # +vif_uuid+:: OpaqueRef of the VIF
+  def vif_plug(vif_uuid)
+    vif_opaqueref = vif_get_ref(vif_uuid)
+    vif_opaqueref.key?('Value') ? @connect.call('VIF.plug', @session, vif_opaqueref['Value']) : vif_opaqueref
   end
 
   ##
   # UnPlug the VIF
-  # +vif_opaqueref+:: OpaqueRef of the VIF
-  def vif_unplug(vif_opaqueref)
-    @connect.call('VIF.unplug', @session, vif_opaqueref)
+  # +vif_uuid+:: OpaqueRef of the VIF
+  def vif_unplug(vif_uuid)
+    vif_opaqueref = vif_get_ref(vif_uuid)
+    vif_opaqueref.key?('Value') ? @connect.call('VIF.unplug', @session, vif_opaqueref['Value']) : vif_opaqueref
+  end
+
+  ##
+  # Get VIF uuid
+  def vif_get_uuid(vif_opaqueref)
+    @connect.call('VIF.get_uuid', @session, vif_opaqueref)
+  end
+
+  ##
+  # Get VIF OpaqueRef
+  def vif_get_ref(vif_uuid)
+    @connect.call('VIF.get_by_uuid', @session, vif_uuid)
   end
 
   #---
@@ -834,13 +967,18 @@ class XenApi
   ##
   # List all network
   def network_list
-    @connect.call('network.get_all', @session)
+    result = @connect.call('network.get_all', @session)
+    result['Value'].map! do |ref|
+      network_get_uuid(ref)['Value']
+    end
+    result
   end
 
   ##
   # Get details of the network
-  def network_get_detail(network_opaqueref)
-    @connect.call('network.get_record', @session, network_opaqueref)
+  def network_get_detail(network_uuid)
+    network_opaqueref = network_get_ref(network_uuid)
+    network_opaqueref.key?('Value') ? @connect.call('network.get_record', @session, network_opaqueref['Value']) : network_opaqueref
   end
 
   ##
@@ -852,37 +990,43 @@ class XenApi
       MTU: 1500,
       other_config: {}
     }
-    @connect.call('network.create', @session, vbd_object)
+    result = @connect.call('network.create', @session, vbd_object)
+    result['Value'] = network_get_uuid(result['Value'])['Value']
+    result
   end
 
   ##
   # Destroy a Internal Network
-  # +network_opaqueref+:: OpaqueRef of the Network
-  def network_destroy(network_opaqueref)
-    @connect.call('network.destroy', @session, network_opaqueref)
+  # +network_uuid+:: OpaqueRef of the Network
+  def network_destroy(network_uuid)
+    network_opaqueref = network_get_ref(network_uuid)
+    network_opaqueref.key?('Value') ? @connect.call('network.destroy', @session, network_opaqueref['Value']) : network_opaqueref
   end
 
   ##
   # Tag a network
-  # +network_opaqueref+:: OpaqueRef of the Network
+  # +network_uuid+:: OpaqueRef of the Network
   # +tag+:: the name tag
-  def network_add_tag(network_opaqueref, tag)
-    @connect.call('network.add_tags', @session, network_opaqueref, tag)
+  def network_add_tag(network_uuid, tag)
+    network_opaqueref = network_get_ref(network_uuid)
+    network_opaqueref.key?('Value') ? @connect.call('network.add_tags', @session, network_opaqueref['Value'], tag) : network_opaqueref
   end
 
   ##
   # UNTag a network
-  # +network_opaqueref+:: OpaqueRef of the Network
+  # +network_uuid+:: OpaqueRef of the Network
   # +tag+:: the name tag
-  def network_rm_tag(network_opaqueref, tag)
-    @connect.call('network.remove_tags', @session, network_opaqueref, tag)
+  def network_rm_tag(network_uuid, tag)
+    network_opaqueref = network_get_ref(network_uuid)
+    network_opaqueref.key?('Value') ? @connect.call('network.remove_tags', @session, network_opaqueref['Value'], tag) : network_opaqueref
   end
 
   ##
   # Get Tags of network
-  # +network_opaqueref+:: OpaqueRef of the Network
-  def network_get_tags(network_opaqueref)
-    @connect.call('network.get_tags', @session, network_opaqueref)
+  # +network_uuid+:: uuid of the Network
+  def network_get_tags(network_uuid)
+    network_opaqueref = network_get_ref(network_uuid)
+    network_opaqueref.key?('Value') ? @connect.call('network.get_tags', @session, network_opaqueref['Value']) : network_opaqueref
   end
 
   ##
@@ -890,10 +1034,138 @@ class XenApi
   # +tag+:: the name tag
   def network_search_by_tag(tag)
     networks = network_list['Value']
-    result = networks.select do |network_opaqueref|
+    networks.select! do |network_opaqueref|
       network_get_tags(network_opaqueref)['Value'].include?(tag)
     end
+    networks.map! do |ref|
+      network_get_uuid(ref)['Value']
+    end
+    Messages.success_nodesc_with_payload(networks)
+  end
+
+  ##
+  # Get Network uuid
+  def network_get_uuid(network_opaqueref)
+    @connect.call('network.get_uuid', @session, network_opaqueref)
+  end
+
+  ##
+  # Get Network OpaqueRef
+  def network_get_ref(network_uuid)
+    @connect.call('network.get_by_uuid', @session, network_uuid)
+  end
+
+  #---
+  # Collection: SR
+  #---
+
+  ##
+  # List all SRs in the system
+  # +iso_sr+:: include SRs for ISO file? 'include' // 'exclude' // 'only'
+  # +uuid_mode+:: results in UUID? true / false
+  def sr_list(iso_sr, uuid_mode)
+    all_sr = @connect.call('SR.get_all', @session)
+    if iso_sr == 'exclude'
+      all_sr['Value'].select! do |opaqueref|
+        check_sr_is_vdisr_by_ref(opaqueref) if iso_sr == 'exclude'
+        check_sr_is_iso(opaqueref) if iso_sr == 'only'
+        true if iso_sr == 'include'
+      end
+    end
+    if uuid_mode == true
+      all_sr['Value'].map! do |ref|
+        sr_get_uuid(ref)['Value']
+      end
+    end
+    all_sr
+  end
+
+  ##
+  # Get SR Record
+  # +sr_uuid+:: UUID of SR
+  def sr_get_record(sr_uuid)
+    sr_opaqueref = sr_get_ref(sr_uuid)
+    sr_opaqueref.key?('Value') ? @connect.call('SR.get_record', @session, sr_opaqueref['Value']) : sr_opaqueref
+  end
+
+  ##
+  # Get SR Connection by uuid
+  def sr_get_type(sr_uuid)
+    sr_opaqueref = sr_get_ref(sr_uuid)
+    sr_opaqueref.key?('Value') ? @connect.call('SR.get_type', @session, sr_opaqueref['Value']) : sr_opaqueref
+  end
+
+  ##
+  # Get SR Connection type by ref
+  def sr_get_type2(sr_opaqueref)
+    @connect.call('SR.get_type', @session, sr_opaqueref)
+  end
+
+  ##
+  # Add a tag to the specified VDI
+  #
+  # +sr_uuid+:: SR UUID
+  # +tag+    :: Tag
+  def sr_add_tag(sr_uuid, tag)
+    sr_opaqueref = sr_get_ref(sr_uuid)
+    sr_opaqueref.key?('Value') ? @connect.call('VDI.add_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag) : sr_opaqueref
+  end
+
+  ##
+  # Unset SR tags
+  #
+  # +sr_uuid+:: SR UUID
+  # +tag+    :: Tag
+  def sr_rm_tag(sr_uuid, tag)
+    sr_opaqueref = sr_get_ref(sr_uuid)
+    sr_opaqueref.key?('Value') ? @connect.call('SR.remove_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag) : sr_opaqueref
+  end
+
+  ##
+  # Find Default SR
+  def sr_get_default
+    default_pool = @connect.call('pool.get_all', @session)
+    default_sr = @connect.call('pool.get_default_SR', @session, default_pool['Value'][0]) if default_pool['Status'] == 'Success'
+    res_hash = { 'UUID' => sr_get_uuid(default_sr['Value'])['Value'], 'REF' => default_sr['Value'] }
+    Messages.success_nodesc_with_payload(res_hash)
+  end
+
+  ##
+  # get SR tags
+  #
+  # +sr_uuid+:: SR UUID
+  # +tag+    :: Tag
+  # Returns: Tags
+  def sr_get_tags(sr_uuid)
+    sr_opaqueref = sr_get_ref(sr_uuid)
+    sr_opaqueref.key?('Value') ? @connect.call('SR.get_tags', @session, vdi_get_ref(vdi_uuid)['Value']) : sr_opaqueref
+  end
+
+  ##
+  # Search SR by tag
+  # +tag+         :: Tag
+  # Returns Matched VM
+  def sr_search_by_tag(tag)
+    all_sr = sr_list('include', false)['Value']
+    result = all_sr.select do |sr_ref|
+      sr_get_tags(sr_ref)['Value'].include?(tag)
+    end
+    result.map! do |ref|
+      vdi_get_uuid(ref)['Value']
+    end
     Messages.success_nodesc_with_payload(result)
+  end
+
+  ##
+  # Get Network uuid
+  def sr_get_uuid(sr_opaqueref)
+    @connect.call('SR.get_uuid', @session, sr_opaqueref)
+  end
+
+  ##
+  # Get Network OpaqueRef
+  def sr_get_ref(sr_uuid)
+    @connect.call('SR.get_by_uuid', @session, sr_uuid)
   end
 
   #---
@@ -957,10 +1229,17 @@ class XenApi
   end
 
   ##
-  # Filter: Check VDI Existency
-  def check_vdi_entity_is_nonexist(vdi_opaqueref)
-    result = @connect.call('VDI.get_uuid', @session, vdi_opaqueref)['Status']
-    result == 'Success' ? false : true
+  # Check if a SR is ISO
+  def check_sr_is_iso(sr_opaqueref)
+    type = sr_get_type2(sr_opaqueref)['Value']
+    type != 'iso' ? true : false
+  end
+
+  ##
+  # Check if a SR is udes
+  def check_sr_is_udev(sr_opaqueref)
+    type = sr_get_type2(sr_opaqueref)['Value']
+    type != 'udev' ? true : false
   end
 
   #---
@@ -969,20 +1248,56 @@ class XenApi
 
   ##
   # Refactor: Aggregated Validity Check
-  def check_vm_entity_validity(vm_opaqueref)
-    check_vm_entity_is_nonexist(vm_opaqueref) || check_vm_entity_is_dom0(vm_opaqueref) || check_vm_entity_is_template(vm_opaqueref) || vm_opaqueref == '' || vm_opaqueref.nil?
+  def check_vm_entity_validity(vm_uuid)
+    if vm_uuid == '' || vm_uuid.nil?
+      true
+    else
+      vm_opaqueref = vm_get_ref(vm_uuid)
+      vm_opaqueref['Status'] == 'Success' ? check_vm_entity_is_dom0(vm_opaqueref['Value']) || check_vm_entity_is_template(vm_opaqueref['Value']) : true
+    end
   end
 
   ##
   # Refactor: Check Template Validity
-  def check_vm_template_validity(vm_tpl_opaqueref)
-    check_vm_entity_is_nonexist(vm_tpl_opaqueref) || check_vm_entity_is_dom0(vm_tpl_opaqueref) || !check_vm_entity_is_template(vm_tpl_opaqueref) || !check_vm_entity_is_paravirtual(vm_tpl_opaqueref) || vm_tpl_opaqueref == '' || vm_tpl_opaqueref.nil?
+  def check_vm_template_validity(vm_tpl_uuid)
+    if vm_tpl_uuid == '' || vm_tpl_uuid.nil?
+      true
+    else
+      vm_tpl_opaqueref = vm_get_ref(vm_tpl_uuid)
+      vm_tpl_opaqueref['Status'] == 'Success' ? !check_vm_entity_is_template(vm_tpl_opaqueref['Value']) || !check_vm_entity_is_paravirtual(vm_tpl_opaqueref['Value']) : true
+    end
   end
 
   ##
   # Refactor: Aggregated VDI Validity Check
-  def check_vdi_entity_validity(vdi_opaqueref)
-    check_vdi_entity_is_nonexist(vdi_opaqueref) || check_vdi_is_a_snapshot(vdi_opaqueref) || check_vdi_is_xs_iso(vdi_opaqueref) || vdi_opaqueref == '' || vdi_opaqueref.nil?
+  def check_vdi_entity_validity(vdi_uuid)
+    if vdi_uuid == '' || vdi_uuid.nil?
+      true
+    else
+      vdi_opaqueref = vdi_get_ref(vdi_uuid)
+      vdi_opaqueref['Status'] == 'Success' ? check_vdi_is_a_snapshot(vdi_opaqueref['Value']) || check_vdi_is_xs_iso(vdi_opaqueref['Value']) : true
+    end
+  end
+
+  ##
+  # Filter away non-VM SR
+  def check_sr_is_vdisr_by_ref(sr_ref)
+    if sr_ref.nil? || sr_ref == ''
+      false
+    else
+      !(check_sr_is_iso(sr_ref) && check_sr_is_udev(sr_ref))
+    end
+  end
+
+  ##
+  # Filter away non-VM SR
+  def check_sr_is_vdisr_by_uuid(sr_uuid)
+    if sr_uuid.nil? || sr_uuid == ''
+      false
+    else
+      sr_ref = sr_get_ref(sr_uuid)
+      sr_ref.key?('Value') ? !(check_sr_is_iso(sr_ref['Value']) && check_sr_is_udev(sr_ref['Value'])) : false
+    end
   end
 
   #---
@@ -1050,11 +1365,5 @@ class XenApi
     true if Integer(string)
   rescue Integer::ArgumentError
     false
-  end
-
-  ##
-  # https://github.com/andrewgho/genmac
-  def random_mac
-    (1..6).collect { format('%02x', (rand 255)) }.join(':')
   end
 end

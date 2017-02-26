@@ -46,11 +46,11 @@
 
 <h2 id="classes">Classes and Modules</h2>
 <ul>
-  <li class="class">
-    <a href="Processor.html">Processor</a>
+  <li class="module">
+    <a href="XMLRPC.html">XMLRPC</a>
   </li>
-  <li class="class">
-    <a href="Rabbit.html">Rabbit</a>
+  <li class="module">
+    <a href="XMLRPC/Config.html">XMLRPC::Config</a>
   </li>
   <li class="class">
     <a href="XenApi.html">XenApi</a>
@@ -61,19 +61,9 @@
 <ul>
 
   <li class="method">
-    <a href="Rabbit.html#method-c-new">::new</a>
-    &mdash;
-    <span class="container">Rabbit</span>
-
-  <li class="method">
     <a href="XenApi.html#method-c-new">::new</a>
     &mdash;
     <span class="container">XenApi</span>
-
-  <li class="method">
-    <a href="Processor.html#method-c-process">::process</a>
-    &mdash;
-    <span class="container">Processor</span>
 
   <li class="method">
     <a href="XenApi.html#method-i-async_task_manager">#async_task_manager</a>
@@ -81,7 +71,22 @@
     <span class="container">XenApi</span>
 
   <li class="method">
-    <a href="XenApi.html#method-i-check_vdi_entity_is_nonexist">#check_vdi_entity_is_nonexist</a>
+    <a href="XenApi.html#method-i-check_sr_is_iso">#check_sr_is_iso</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-check_sr_is_udev">#check_sr_is_udev</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-check_sr_is_vdisr_by_ref">#check_sr_is_vdisr_by_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-check_sr_is_vdisr_by_uuid">#check_sr_is_vdisr_by_uuid</a>
     &mdash;
     <span class="container">XenApi</span>
 
@@ -161,7 +166,17 @@
     <span class="container">XenApi</span>
 
   <li class="method">
+    <a href="XenApi.html#method-i-network_get_ref">#network_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
     <a href="XenApi.html#method-i-network_get_tags">#network_get_tags</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-network_get_uuid">#network_get_uuid</a>
     &mdash;
     <span class="container">XenApi</span>
 
@@ -191,34 +206,64 @@
     <span class="container">XenApi</span>
 
   <li class="method">
-    <a href="Rabbit.html#method-i-publish">#publish</a>
-    &mdash;
-    <span class="container">Rabbit</span>
-
-  <li class="method">
-    <a href="Rabbit.html#method-i-queue_in">#queue_in</a>
-    &mdash;
-    <span class="container">Rabbit</span>
-
-  <li class="method">
-    <a href="Rabbit.html#method-i-queue_out">#queue_out</a>
-    &mdash;
-    <span class="container">Rabbit</span>
-
-  <li class="method">
-    <a href="XenApi.html#method-i-random_mac">#random_mac</a>
-    &mdash;
-    <span class="container">XenApi</span>
-
-  <li class="method">
     <a href="XenApi.html#method-i-session_logout">#session_logout</a>
     &mdash;
     <span class="container">XenApi</span>
 
   <li class="method">
-    <a href="Rabbit.html#method-i-start">#start</a>
+    <a href="XenApi.html#method-i-sr_add_tag">#sr_add_tag</a>
     &mdash;
-    <span class="container">Rabbit</span>
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_default">#sr_get_default</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_record">#sr_get_record</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_ref">#sr_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_tags">#sr_get_tags</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_type">#sr_get_type</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_type2">#sr_get_type2</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_get_uuid">#sr_get_uuid</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_list">#sr_list</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_rm_tag">#sr_rm_tag</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-sr_search_by_tag">#sr_search_by_tag</a>
+    &mdash;
+    <span class="container">XenApi</span>
 
   <li class="method">
     <a href="XenApi.html#method-i-task_cancel">#task_cancel</a>
@@ -266,6 +311,21 @@
     <span class="container">XenApi</span>
 
   <li class="method">
+    <a href="XenApi.html#method-i-vbd_get_detail2">#vbd_get_detail2</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vbd_get_ref">#vbd_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vbd_get_uuid">#vbd_get_uuid</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
     <a href="XenApi.html#method-i-vbd_list">#vbd_list</a>
     &mdash;
     <span class="container">XenApi</span>
@@ -281,12 +341,27 @@
     <span class="container">XenApi</span>
 
   <li class="method">
+    <a href="XenApi.html#method-i-vdi_destroy2">#vdi_destroy2</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
     <a href="XenApi.html#method-i-vdi_get_record">#vdi_get_record</a>
     &mdash;
     <span class="container">XenApi</span>
 
   <li class="method">
+    <a href="XenApi.html#method-i-vdi_get_ref">#vdi_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
     <a href="XenApi.html#method-i-vdi_get_tags">#vdi_get_tags</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vdi_get_uuid">#vdi_get_uuid</a>
     &mdash;
     <span class="container">XenApi</span>
 
@@ -332,6 +407,16 @@
 
   <li class="method">
     <a href="XenApi.html#method-i-vif_get_detail">#vif_get_detail</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vif_get_ref">#vif_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vif_get_uuid">#vif_get_uuid</a>
     &mdash;
     <span class="container">XenApi</span>
 
@@ -401,12 +486,22 @@
     <span class="container">XenApi</span>
 
   <li class="method">
+    <a href="XenApi.html#method-i-vm_get_ref">#vm_get_ref</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
     <a href="XenApi.html#method-i-vm_get_tags">#vm_get_tags</a>
     &mdash;
     <span class="container">XenApi</span>
 
   <li class="method">
     <a href="XenApi.html#method-i-vm_get_template_record">#vm_get_template_record</a>
+    &mdash;
+    <span class="container">XenApi</span>
+
+  <li class="method">
+    <a href="XenApi.html#method-i-vm_get_uuid">#vm_get_uuid</a>
     &mdash;
     <span class="container">XenApi</span>
 

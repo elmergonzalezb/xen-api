@@ -80,8 +80,7 @@ class Processor
         when 'get.vdi.detail'
           xenapi.vdi_get_record(payload)
         when 'do.vdi.resize'
-          Messages.error_unsupported
-          # xenapi.vdi_resize(payload['vdi-ref'], payload['vdi-new-size'])
+          xenapi.vdi_resize(payload['vdi_ref'], payload['vdi_new_size'])
         when 'set.vdi.tag'
           xenapi.vdi_add_tag(payload['vm'], payload['tag'])
         when 'no.set.vm.tag'
@@ -93,7 +92,7 @@ class Processor
         when 'get.vbd.detail'
           xenapi.vbd_get_detail(payload)
         when 'do.vbd.create'
-          xenapi.vbd_create(payload['vm-ref'], payload['vdi-ref'], payload['vm-slot'])
+          xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
         else
           Messages.error_undefined
         end

@@ -73,7 +73,7 @@ class Processor
           xenapi.network_get_detail(payload)
         when 'do.network.create'
           response = Array.new(2)
-          response[0] = xenapi.network_create(payload['network-name'])
+          response[0] = xenapi.network_create(payload['network_name'])
           unless response[0]['Status'] == 'Success'
             response[1] = xenapi.network_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
@@ -85,7 +85,7 @@ class Processor
         when 'get.vif.info'
           xenapi.vif_get_detail(payload)
         when 'do.vif.create'
-          xenapi.vif_create(payload['vm'], payload['net'], payload['vm-slot'])
+          xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
         when 'do.vif.destroy'
           xenapi.vif_destroy(payload)
         when 'do.vif.plug'

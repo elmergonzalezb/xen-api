@@ -40,6 +40,7 @@ xenapi.logout
 * [Nori XML Parser](https://github.com/savonrb/nori)
 * [XAPI Project](https://xapi-project.github.io/)
   * Navigating in website farrrrrr better than 600 Pages PDF
+  * The VM Provisioning Script is adapted from https://github.com/xapi-project/xen-api
 * [JSON Test Code Snippet from ascendbruce](https://gist.github.com/ascendbruce/7070951)
 * [A Guide on using Ruby XMLRPC Client over HTTPS](https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/)
 * [An Answer on raising exception while some ENV is not set](https://stackoverflow.com/questions/11918905/ruby-which-exception-is-best-to-handle-unset-environment-variables)

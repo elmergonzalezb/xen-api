@@ -100,46 +100,49 @@ class Processor
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
           response
-        when 'do.vm.clone_from_template_debian'
+        when 'do.vm.clone.from_template.debian'
           response = Array.new(2)
           response[0] = xenapi.vm_clone_from_template(\
             payload['src_vm'], \
             payload['new_vm_name'], \
             '-- console=hvc0 ks=' + payload['ks_url'], \
             payload['repo_url'], \
-            'debian', \
+            'debianlike', \
             payload['deb_distro_release'], \
-            payload['network_ref']
+            payload['network_ref'],
+            payload['disk_size']
           )
           unless response[0]['Status'] == 'Success'
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
           response
-        when 'do.vm.clone_from_template_rhel'
+        when 'do.vm.clone.from_template.rhel'
           response = Array.new(2)
           response[0] = xenapi.vm_clone_from_template(\
             payload['src_vm'], \
             payload['new_vm_name'], \
             'console=hvc0 utf8 nogpt noipv6 ks=' + payload['ks_url'], \
             payload['repo_url'], \
-            'rhel', \
+            'rhlike', \
             nil, \
-            payload['network_ref']
+            payload['network_ref'],
+            payload['disk_size']
           )
           unless response[0]['Status'] == 'Success'
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
           response
-        when 'do.vm.clone_from_template_sle'
+        when 'do.vm.clone.from_template.sle'
           response = Array.new(2)
           responsep[0] = xenapi.vm_clone_from_template(\
             payload['src_vm'], \
             payload['new_vm_name'], \
             'console=xvc0 xencons=xvc autoyast2=' + payload['ks_url'], \
             payload['repo_url'], \
-            'sle', \
+            'sleslike', \
             nil, \
-            payload['network_ref']
+            payload['network_ref'],
+            payload['disk_size']
           )
           unless response[0]['Status'] == 'Success'
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
