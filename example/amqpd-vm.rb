@@ -45,6 +45,18 @@ class Rabbit
   end
 end
 
+##
+# Convert Size to Byte-size
+class Calculator
+  def self.to_byte(number, unit)
+    if unit == 'G'
+      number * 1024 * 1024 * 1024
+    elsif unit == 'M'
+      number * 1024 * 1024
+    end
+  end
+end
+
 # Class: Processor
 # The main work logic.
 class Processor
@@ -96,9 +108,7 @@ class Processor
         when 'get.vm.tags'
           xenapi.vm_rm_tag(payload['vm'])
         when 'set.vm.ram'
-          payload['ram_size'] = payload['ram_size'] * 1024 * 1024 * 1024 if payload['ram_unit'] == 'G'
-          payload['ram_size'] = payload['ram_size'] * 1024 * 1024 if payload['ram_unit'] == 'M'
-          xenapi.vm_set_max_ram(payload['vm'], payload['ram_size'])
+          xenapi.vm_set_max_ram(payload['vm'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
         when 'do.vm.clone'
           response = Array.new(2)
           response[0] = xenapi.vm_clone(payload['src_vm'], payload['new_vm_name'])
@@ -106,73 +116,32 @@ class Processor
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
           response
-        when 'do.vm.clone.from_template.debian'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 * 1024 if payload['disk_unit'] == 'G'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 if payload['disk_unit'] == 'M'
+        when 'do.vm.clone.from_template'
+          cmd_prefix = \
+            case payload['distro']
+            when 'debianlike'
+              '-- console=hvc0 ks='
+            when 'rhlike'
+              'console=hvc0 utf8 nogpt noipv6 ks='
+            when 'sleslike'
+              'console=xvc0 xencons=xvc autoyast2='
+            end
           response = Array.new(3)
           response[0] = xenapi.vm_clone_from_template(\
             payload['src_vm'], \
             payload['new_vm_name'], \
-            '-- console=hvc0 ks=' + payload['ks_url'], \
+            cmd_prefix + payload['ks_url'], \
             payload['repo_url'], \
-            'debianlike', \
+            payload['distro'], \
             payload['deb_distro_release'], \
             payload['network_ref'],
-            payload['disk_size']
+            Calculator.to_byte(payload['disk_size'], payload['disk_unit'])
           )
           unless response[0]['Status'] != 'Success'
             response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
           end
           unless response[1]['Status'] != 'Success'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 * 1024 if payload['ram_unit'] == 'G'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 if payload['ram_unit'] == 'M'
-            response[2] = xenapi.vm_set_max_ram(response[0]['Value'], payload['ram_size'])
-          end
-          response
-        when 'do.vm.clone.from_template.rhel'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 * 1024 if payload['disk_unit'] == 'G'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 if payload['disk_unit'] == 'M'
-          response = Array.new(3)
-          response[0] = xenapi.vm_clone_from_template(\
-            payload['src_vm'], \
-            payload['new_vm_name'], \
-            'console=hvc0 utf8 nogpt noipv6 ks=' + payload['ks_url'], \
-            payload['repo_url'], \
-            'rhlike', \
-            nil, \
-            payload['network_ref'],
-            payload['disk_size']
-          )
-          unless response[0]['Status'] != 'Success'
-            response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
-          end
-          unless response[1]['Status'] != 'Success'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 * 1024 if payload['ram_unit'] == 'G'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 if payload['ram_unit'] == 'M'
-            response[2] = xenapi.vm_set_max_ram(response[0]['Value'], payload['ram_size'])
-          end
-          response
-        when 'do.vm.clone.from_template.sle'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 * 1024 if payload['disk_unit'] == 'G'
-          payload['disk_size'] = payload['disk_size'] * 1024 * 1024 if payload['disk_unit'] == 'M'
-          response = Array.new(3)
-          responsep[0] = xenapi.vm_clone_from_template(\
-            payload['src_vm'], \
-            payload['new_vm_name'], \
-            'console=xvc0 xencons=xvc autoyast2=' + payload['ks_url'], \
-            payload['repo_url'], \
-            'sleslike', \
-            nil, \
-            payload['network_ref'],
-            payload['disk_size']
-          )
-          unless response[0]['Status'] != 'Success'
-            response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
-          end
-          unless response[1]['Status'] != 'Success'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 * 1024 if payload['ram_unit'] == 'G'
-            payload['ram_size'] = payload['ram_size'] * 1024 * 1024 if payload['ram_unit'] == 'M'
-            response[2] = xenapi.vm_set_max_ram(response[0]['Value'], payload['ram_size'])
+            response[2] = xenapi.vm_set_max_ram(response[0]['Value'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
           end
           response
         when 'do.vm.destroy'
