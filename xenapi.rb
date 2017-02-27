@@ -110,7 +110,7 @@ class XenApi
       begin
         record['snapshot_time'] = record['snapshot_time'].to_time.to_s
       rescue NoMethodError
-        true
+        record['Value']['snapshot_time'] = nil
       end
       record['Value']['VIFs'].map! do |vif_ref|
         vif_get_uuid(vif_ref)['Value']
