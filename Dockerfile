@@ -17,6 +17,6 @@ ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_PORT=443 \
     XAPI_SSL=true \
     XAPI_USER=root \
-    XAPI_PASS=change-me \
+    XAPI_PASS=change-me
 
 ENTRYPOINT ["/usr/bin/supervisord"]

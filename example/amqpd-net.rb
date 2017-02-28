@@ -2,15 +2,15 @@
 
 require 'bunny'
 require 'json'
-require '../xenapi.rb'
-require '../messages.rb'
+require_relative '../xenapi.rb'
+require_relative '../messages.rb'
 
 # Class: Rabbit
 # A class to manage the DNS AMQP API
 class Rabbit
   # initialize by define and start connection
   def initialize
-    @connection = Bunny.new(ENV['AMQP_URI'] || 'amqp://localhost')
+    @connection = Bunny.new(ENV['AMQP_URI'])
     @connection.start
     @channel = @connection.create_channel
   end
