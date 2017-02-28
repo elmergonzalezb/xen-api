@@ -4,7 +4,7 @@ require 'json'
 require 'nori'
 require 'openssl'
 require 'xmlrpc/client'
-require './messages.rb'
+require_relative './messages.rb'
 
 ##
 # Overriding with Monkey-Patching the CONSTANT
