@@ -24,7 +24,7 @@ class Rabbit
   end
 
   # Message Queue Publisher
-  def publish(message, reply_to, corr)
+  def publish(message, corr)
     queue_out.publish(message, correlation_id: corr)
     @channel.close
     @connection.close
