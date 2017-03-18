@@ -5,3 +5,6 @@ gem 'bunny'
 gem 'json'
 gem 'nokogiri'
 gem 'nori'
+
+gem 'sinatra'
+gem 'sinatra-contrib'

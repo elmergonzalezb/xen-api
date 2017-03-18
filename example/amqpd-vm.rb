@@ -60,7 +60,8 @@ end
 class Processor
   # Process the Stuff.
   def self.process(body, msg_id)
-    xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false, ENV['XAPI_USER'], ENV['XAPI_PASS'])
+    xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
+    xenapi.session_login(ENV['XAPI_USER'], ENV['XAPI_PASS'])
     rabbit = Rabbit.new
     parsed = JSON.parse(body)
     payload = parsed['payload']
@@ -84,7 +85,7 @@ class Processor
           xenapi.vm_get_guest_metrics(payload)
         when 'get.vm.networks'
           xenapi.vm_get_guest_metrics_network(payload)
-        when 'get.vm.nis'
+        when 'get.vm.nics'
           xenapi.vm_get_vifs(payload, true)
         when 'set.vm.power_on'
           xenapi.vm_power_on(payload)

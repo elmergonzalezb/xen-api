@@ -29,19 +29,29 @@ class XenApi
   # +server_port+:: Server API Port, useful while oeprate over SSH
   # +username+   :: Username, usually _root_
   # +password+   :: Password, the password!
-  def initialize(server_path, server_port = 443, use_ssl = true, username = 'root', password)
+  def initialize(server_path, server_port = 443, use_ssl = true)
     # This is where the connection is made
     # https://stelfox.net/blog/2012/02/rubys-xmlrpc-client-and-ssl/
-    connection_param = {
+    @connection_param = {
       host: server_path,
       port: server_port,
       use_ssl: use_ssl,
       path: '/'
     }
-    @connect = XMLRPC::Client.new_from_hash(connection_param)
+    @connect = XMLRPC::Client.new_from_hash(@connection_param)
     # This is the SSL Check Bypassing Mechanism
     @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless use_ssl == false
-    @session = @connect.call('session.login_with_password', username, password)['Value']
+  end
+
+  def session_login(username = 'root', password)
+    callback = @connect.call('session.login_with_password', username, password)
+    if callback['Status'] == 'Error' && callback['ErrorDescription'][0] == 'HOST_IS_SLAVE'
+      @connection_param[host] = callback['ErrorDescription'][1]
+      @connect = XMLRPC::Client.new_from_hash(@connection_param)
+      @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless use_ssl == false
+    else
+      @session = callback['Value']
+    end
   end
 
   ##
