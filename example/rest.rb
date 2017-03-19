@@ -22,6 +22,14 @@ class API < Sinatra::Base
       json xenapi.vm_list_all
     end
 
+    get '/byuser/:userid' do |userid|
+      json xenapi.vm_search_by_tag('userid:' + userid)
+    end
+
+    get '/bytag/:tag' do |tag|
+      json xenapi.vm_search_by_tag(tag)
+    end
+
     get '/:uuid' do |uuid|
       json xenapi.vm_get_record(uuid)
     end
@@ -42,4 +50,59 @@ class API < Sinatra::Base
       json xenapi.vm_get_template_record(uuid)
     end
   end
+
+  namespace '/net' do
+    get '/' do
+      json xenapi.network_list
+    end
+    
+    get '/byuser/:userid' do |userid|
+      json xenapi.network_search_by_tag('userid:' + userid)
+    end
+
+    get '/bytag/:tag' do |tag|
+      json xenapi.network_search_by_tag(tag)
+    end
+    
+    get '/:uuid' do |uuid|
+      json xenapi.network_get_detail(uuid)
+    end
+  end
+
+  namespace '/block' do
+    namespace '/vdi' do
+      get '/' do
+        json xenapi.vdi_list('include')
+      end
+      
+      get '/iso' do
+        json xenapi.vdi_list('only')
+      end
+      
+      get '/disk' do
+        json xenapi.vdi_list('exclude')
+      end
+
+      get '/byuser/:userid' do |userid|
+        json xenapi.vdi_search_by_tag('userid:' + userid)
+      end
+
+      get '/bytag/:tag' do |tag|
+        json xenapi.vdi_search_by_tag(tag)
+      end
+      
+      get '/:uuid' do |uuid|
+        json xenapi.vdi_get_record(uuid)
+      end  
+    end
+    
+    namespace '/vbd' do
+      get '/' do
+        json xenapi.vbd_list
+      end
+      
+      get '/:uuid' do |uuid|
+        json xenapi.vbd_get_detail2(uuid)
+      end
+    end
 end
