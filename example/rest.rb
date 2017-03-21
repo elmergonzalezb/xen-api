@@ -21,7 +21,7 @@ class API < Sinatra::Base
   end
 
   get '/' do
-    status 200
+    'OK'
   end
 
   namespace '/vm' do
