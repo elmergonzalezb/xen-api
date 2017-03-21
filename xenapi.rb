@@ -43,7 +43,7 @@ class XenApi
     @connect.http.verify_mode = OpenSSL::SSL::VERIFY_NONE unless use_ssl == false
   end
 
-  def session_login(username = 'root', password)
+  def session_login(username, password)
     callback = @connect.call('session.login_with_password', username, password)
     if callback['Status'] == 'Error' && callback['ErrorDescription'][0] == 'HOST_IS_SLAVE'
       @connection_param[host] = callback['ErrorDescription'][1]

@@ -14,7 +14,11 @@ class API < Sinatra::Base
   register Sinatra::Namespace
 
   xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
-  xenapi.session_login(ENV['XAPI_USER'], ENV['XAPI_PASS'])
+  begin
+    xenapi.session_login(ENV['XAPI_USER'], ENV['XAPI_PASS'])
+  rescue Interrupt => _
+    xenapi.session_logout
+  end
 
   get '/' do
     status 200
@@ -112,4 +116,4 @@ class API < Sinatra::Base
   end
 end
 
-App.run!
+API.run!
