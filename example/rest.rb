@@ -16,6 +16,10 @@ class API < Sinatra::Base
   xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
   xenapi.session_login(ENV['XAPI_USER'], ENV['XAPI_PASS'])
 
+  get '/' do
+    status 200
+  end
+
   namespace '/vm' do
     # Show the records in the database
     get '/' do
@@ -55,7 +59,7 @@ class API < Sinatra::Base
     get '/' do
       json xenapi.network_list
     end
-    
+
     get '/byuser/:userid' do |userid|
       json xenapi.network_search_by_tag('userid:' + userid)
     end
@@ -63,7 +67,7 @@ class API < Sinatra::Base
     get '/bytag/:tag' do |tag|
       json xenapi.network_search_by_tag(tag)
     end
-    
+
     get '/:uuid' do |uuid|
       json xenapi.network_get_detail(uuid)
     end
@@ -74,11 +78,11 @@ class API < Sinatra::Base
       get '/' do
         json xenapi.vdi_list('include')
       end
-      
+
       get '/iso' do
         json xenapi.vdi_list('only')
       end
-      
+
       get '/disk' do
         json xenapi.vdi_list('exclude')
       end
@@ -90,17 +94,17 @@ class API < Sinatra::Base
       get '/bytag/:tag' do |tag|
         json xenapi.vdi_search_by_tag(tag)
       end
-      
+
       get '/:uuid' do |uuid|
         json xenapi.vdi_get_record(uuid)
-      end  
+      end
     end
-    
+
     namespace '/vbd' do
       get '/' do
         json xenapi.vbd_list
       end
-      
+
       get '/:uuid' do |uuid|
         json xenapi.vbd_get_detail2(uuid)
       end
