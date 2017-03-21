@@ -109,4 +109,7 @@ class API < Sinatra::Base
         json xenapi.vbd_get_detail2(uuid)
       end
     end
+  end
 end
+
+App.run!

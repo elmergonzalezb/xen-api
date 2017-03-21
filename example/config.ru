@@ -1,2 +1,0 @@
-require './apid'
-run API
