@@ -23,4 +23,4 @@ ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_USER=root \
     XAPI_PASS=change-me
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

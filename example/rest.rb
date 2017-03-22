@@ -12,7 +12,7 @@ require 'sinatra/namespace'
 class API < Sinatra::Base
   register Sinatra::JSON
   register Sinatra::Namespace
-  set :bind, '::'
+  set :bind, '0.0.0.0'
 
   xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
   begin
