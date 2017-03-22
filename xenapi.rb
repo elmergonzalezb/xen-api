@@ -114,25 +114,27 @@ class XenApi
       Messages.error_not_permitted
     else
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      record = @connect.call('VM.get_record', @session, vm_opaqueref)['Value']
+      record = @connect.call('VM.get_record', @session, vm_opaqueref)
       # Post processing
       # 1. Decode Time Object to Human-readable
-      begin
-        record['snapshot_time'] = record['snapshot_time'].to_time.to_s
-      rescue NoMethodError
-        record['Value']['snapshot_time'] = nil
+      if record.key?('Value')
+        begin
+          record['Value']['snapshot_time'] = record['snapshot_time'].to_time.to_s
+        rescue NoMethodError
+          record['Value']['snapshot_time'] = nil
+        end
+        record['Value']['VIFs'].map! do |vif_ref|
+          vif_get_uuid(vif_ref)['Value']
+        end
+        record['Value']['VBDs'].map! do |vbd_ref|
+          vbd_get_uuid(vbd_ref)['Value']
+        end
+        # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
+        #    the JSON generator
+        record['Value']['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
+        # Output. return is redundant in Ruby World.
       end
-      record['Value']['VIFs'].map! do |vif_ref|
-        vif_get_uuid(vif_ref)['Value']
-      end
-      record['Value']['VBDs'].map! do |vbd_ref|
-        vbd_get_uuid(vbd_ref)['Value']
-      end
-      # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
-      #    the JSON generator
-      record['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
-      # Output. return is redundant in Ruby World.
-      Messages.success_nodesc_with_payload(record)
+      record
     end
   end
 
@@ -146,13 +148,15 @@ class XenApi
     else
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       record = @connect.call('VM.get_record', @session, vm_opaqueref)
-      begin
-        record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
-      rescue NoMethodError
-        record['Value']['snapshot_time'] = nil
+      if record.key?('Value')
+        begin
+          record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
+        rescue NoMethodError
+          record['Value']['snapshot_time'] = nil
+        end
       end
       # Output. return is redundant in Ruby World.
-      Messages.success_nodesc_with_payload(record)
+      record
     end
   end
 
@@ -168,14 +172,16 @@ class XenApi
       ref = @connect.call('VM.get_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
-      begin
-        dat['Value']['start_time']   = dat['Value']['last_updated'].to_time.to_s
-        dat['Value']['install_time'] = dat['Value']['last_updated'].to_time.to_s
-        dat['Value']['last_updated'] = dat['Value']['last_updated'].to_time.to_s
-      rescue NoMethodError
-        dat['Value']['start_time']   = nil
-        dat['Value']['install_time'] = nil
-        dat['Value']['last_updated'] = nil
+      if dat.key?('Value')
+        begin
+          dat['Value']['start_time']   = dat['Value']['last_updated'].to_time.to_s
+          dat['Value']['install_time'] = dat['Value']['last_updated'].to_time.to_s
+          dat['Value']['last_updated'] = dat['Value']['last_updated'].to_time.to_s
+        rescue NoMethodError
+          dat['Value']['start_time']   = nil
+          dat['Value']['install_time'] = nil
+          dat['Value']['last_updated'] = nil
+        end
       end
       # Output. return is redundant in Ruby World.
       dat
@@ -194,10 +200,12 @@ class XenApi
       ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
       dat = @connect.call('VM_guest_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
-      begin
-        dat['Value']['last_updated'] = dat['last_updated'].to_time.to_s
-      rescue NoMethodError
-        dat['Value']['last_updated'] = nil
+      if dat.key?('Value')
+        begin
+          dat['Value']['last_updated'] = dat['last_updated'].to_time.to_s
+        rescue NoMethodError
+          dat['Value']['last_updated'] = nil
+        end
       end
       # Output. return is redundant in Ruby World.
       dat
@@ -230,7 +238,7 @@ class XenApi
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       vbds = @connect.call('VM.get_VBDs', @session, vm_opaqueref)
     end
-    if uuid_mode == true && vbds['Status'] == 'Success' && vbds['Value'].empty? == false
+    if uuid_mode == true && vbd.key?('Value') && vbds['Value'].empty? == false
       vbds['Value'].map! do |ref|
         vbd_get_uuid(ref)['Value']
       end
@@ -250,7 +258,7 @@ class XenApi
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       vifs = @connect.call('VM.get_VIFs', @session, vm_opaqueref)
     end
-    if uuid_mode == true && vifs['Status'] == 'Success' && vifs['Value'].empty? == false
+    if uuid_mode == true && vifs.key?('Value') && vifs['Value'].empty? == false
       vifs['Value'].map! do |ref|
         vif_get_uuid(ref)['Value']
       end
