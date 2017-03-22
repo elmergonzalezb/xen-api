@@ -1402,7 +1402,7 @@ class XenApi
   # XML Parser, important
   # https://github.com/savonrb/nori
   def xml_parse(raw_xml)
-    xml_parser = Nori.new(convert_tags_to: ->(tag) { tag.snakecase })
+    xml_parser = Nori.new(parser: :rexml, convert_tags_to: ->(tag) { tag.snakecase })
     xml_parser.parse(raw_xml)
   end
 
