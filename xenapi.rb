@@ -131,7 +131,7 @@ class XenApi
         end
         # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
         #    the JSON generator
-        record['Value']['last_booted_record'] = parse_last_boot_record(record['last_booted_record'])
+        record['Value']['last_booted_record'] = parse_last_boot_record(record['Value']['last_booted_record'])
         # Output. return is redundant in Ruby World.
       end
       record
