@@ -1,10 +1,10 @@
 FROM ruby:alpine
 
-COPY ../../Gemfile /srv
+COPY Gemfile /srv
 
-COPY ../../messages.rb /srv
+COPY messages.rb /srv
 
-COPY ../../xenapi.rb /srv
+COPY xenapi.rb /srv
 
 RUN BUNDLE_GEMFILE=/srv/Gemfile bundler install
 

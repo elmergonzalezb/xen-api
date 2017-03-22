@@ -6,7 +6,7 @@ COPY messages.rb /srv
 
 COPY xenapi.rb /srv
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY supervisord.conf /srv/supervisord.conf
 
 RUN apt-get update \
  && apt-get install -y supervisor \
@@ -28,4 +28,4 @@ ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_USER=root \
     XAPI_PASS=change-me
 
-ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/srv/supervisord.conf"]
