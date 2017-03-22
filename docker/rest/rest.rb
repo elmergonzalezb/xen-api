@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'json'
-require_relative '../xenapi.rb'
-require_relative '../messages.rb'
+require_relative './xenapi.rb'
+require_relative './messages.rb'
 require 'sinatra/base'
 require 'sinatra/json'
 require 'sinatra/namespace'

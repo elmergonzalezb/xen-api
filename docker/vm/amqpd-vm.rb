@@ -2,8 +2,8 @@
 
 require 'bunny'
 require 'json'
-require_relative '../xenapi.rb'
-require_relative '../messages.rb'
+require_relative './xenapi.rb'
+require_relative './messages.rb'
 
 # Class: Rabbit
 # A class to manage the DNS AMQP API

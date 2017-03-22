@@ -2,8 +2,8 @@
 
 require 'bunny'
 require 'json'
-require_relative '../xenapi.rb'
-require_relative '../messages.rb'
+require_relative './xenapi.rb'
+require_relative './messages.rb'
 
 # Class: Rabbit
 # A class to manage the DNS AMQP API
@@ -34,12 +34,12 @@ class Rabbit
 
   # Set up the incoming queue
   def queue_in
-    @channel.queue('hypervisor-net-in', durable: true)
+    @channel.queue('hypervisor-blk-in', durable: true)
   end
 
   # Set up the outgoing queue
   def queue_out
-    @channel.queue('hypervisor-net-out', durable: true)
+    @channel.queue('hypervisor-blk-out', durable: true)
   end
 end
 
@@ -59,33 +59,36 @@ class Processor
       timestamp: Time.now.to_s,
       payload: \
         case parsed['task']
-        when 'get.network.all'
-          xenapi.network_list
-        when 'get.network.my'
-          xenapi.network_search_by_tag('userid:' + payload)
-        when 'get.network.detail'
-          xenapi.network_get_detail(payload)
-        when 'do.network.create'
-          response = Array.new(2)
-          response[0] = xenapi.network_create(payload['network_name'])
-          unless response[0]['Status'] == 'Success'
-            response[1] = xenapi.network_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
-          end
-          response
-        when 'do.network.destroy'
-          xenapi.network_destroy(payload)
-        when 'get.vif.all'
-          xenapi.vif_list
-        when 'get.vif.info'
-          xenapi.vif_get_detail(payload)
-        when 'do.vif.create'
-          xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
-        when 'do.vif.destroy'
-          xenapi.vif_destroy(payload)
-        when 'do.vif.plug'
-          xenapi.vif_plug(payload)
-        when 'do.vif.unplug'
-          xenapi.vif_unplug(payload)
+        when 'get.vdi.all'
+          xenapi.vdi_list('include')
+        when 'get.vdi.iso'
+          xenapi.vdi_list('only')
+        when 'get.vdi.disk'
+          xenapi.vdi_list('exclude')
+        when 'get.vdi.my'
+          xenapi.vdi_search_by_tag('userid:' + payload)
+        when 'get.vdi.snapshot'
+          xenapi.vdi_list_snapshot
+        when 'get.vdi.tools'
+          xenapi.vdi_list_tools
+        when 'get.vdi.detail'
+          xenapi.vdi_get_record(payload)
+        when 'do.vdi.resize'
+          xenapi.vdi_resize(payload['vdi_ref'], payload['vdi_new_size'])
+        when 'get.vdi.tag'
+          xenapi.vdi_add_tag(payload['vdi_ref'])
+        when 'set.vdi.tag'
+          xenapi.vdi_add_tag(payload['vdi_ref'], payload['tag'])
+        when 'no.set.vm.tag'
+          xenapi.vdi_rm_tag(payload['vdi_ref'], payload['tag'])
+        when 'do.vdi.destroy'
+          xenapi.vdi_destroy(payload)
+        when 'get.vbd.all'
+          xenapi.vbd_list
+        when 'get.vbd.detail'
+          xenapi.vbd_get_detail2(payload)
+        when 'do.vbd.create'
+          xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
         else
           Messages.error_undefined
         end

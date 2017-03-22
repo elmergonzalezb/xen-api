@@ -8,13 +8,18 @@ COPY xenapi.rb /srv
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-RUN mkdir -p /srv/example \
- && apt-get update \
+RUN apt-get update \
  && apt-get install -y supervisor \
  && apt-get clean \
  && BUNDLE_GEMFILE=/srv/Gemfile bundler install
 
-COPY example/ /srv/example
+COPY docker/blk/amqpd-blk.rb /srv
+
+COPY docker/net/amqpd-net.rb /srv
+
+COPY docker/vm/amqpd-vm.rb /srv
+
+COPY docker/rest/rest.rb /srv
 
 ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_PATH=192.168.255.254 \
