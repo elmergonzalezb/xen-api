@@ -12,7 +12,11 @@ require 'sinatra/namespace'
 class API < Sinatra::Base
   register Sinatra::JSON
   register Sinatra::Namespace
-  set :bind, '0.0.0.0'
+
+  configure do
+    set :show_exceptions, false
+    set :bind, '0.0.0.0'
+  end
 
   xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
   begin
@@ -39,6 +43,14 @@ class API < Sinatra::Base
       json xenapi.vm_search_by_tag(tag)
     end
 
+    get '/templates' do
+      json xenapi.vm_list_all_templates
+    end
+
+    get '/templates/:uuid' do |uuid|
+      json xenapi.vm_get_template_record(uuid)
+    end
+
     get '/:uuid' do |uuid|
       json xenapi.vm_get_record(uuid)
     end
@@ -49,14 +61,6 @@ class API < Sinatra::Base
 
     get '/:uuid/ip' do |uuid|
       json xenapi.vm_get_guest_metrics_network(uuid)
-    end
-
-    get '/templates' do
-      json xenapi.vm_list_all_templates
-    end
-
-    get '/templates/:uuid' do |uuid|
-      json xenapi.vm_get_template_record(uuid)
     end
   end
 
@@ -114,6 +118,14 @@ class API < Sinatra::Base
         json xenapi.vbd_get_detail2(uuid)
       end
     end
+  end
+
+  error 404 do
+    'Not Found'
+  end
+
+  error do
+    json env['sinatra.error']
   end
 end
 
