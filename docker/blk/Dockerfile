@@ -1,14 +1,8 @@
 FROM ruby:alpine
 
-COPY Gemfile /srv
-
-COPY messages.rb /srv
-
-COPY xenapi.rb /srv
+COPY ./ /srv
 
 RUN BUNDLE_GEMFILE=/srv/Gemfile bundler install
-
-COPY amqpd-blk.rb /srv
 
 ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_PATH=192.168.255.254 \

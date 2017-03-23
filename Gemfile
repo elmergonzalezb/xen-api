@@ -2,7 +2,7 @@
 source 'https://rubygems.org'
 
 gem 'bunny'
-gem 'json'
+gem 'json_pure'
 gem 'nori'
 
 gem 'sinatra'

@@ -1,0 +1,7 @@
+docs/
+.codeclimate.yml
+.rubocop.yml
+LICENSE
+README.md
+screenshot.png
+docker/

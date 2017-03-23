@@ -62,6 +62,10 @@ class API < Sinatra::Base
     get '/:uuid/ip' do |uuid|
       json xenapi.vm_get_guest_metrics_network(uuid)
     end
+
+    get '/:uuid/tags' do |uuid|
+      json xenapi.vm_get_tags(uuid)
+    end
   end
 
   namespace '/net' do
@@ -79,6 +83,10 @@ class API < Sinatra::Base
 
     get '/:uuid' do |uuid|
       json xenapi.network_get_detail(uuid)
+    end
+
+    get '/:uuid/tags' do |uuid|
+      json xenapi.network_get_tags(uuid)
     end
   end
 

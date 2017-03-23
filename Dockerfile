@@ -1,16 +1,8 @@
-FROM ruby:2.4
+FROM ruby:alpine
 
-COPY Gemfile /srv
+COPY ./ /srv
 
-COPY messages.rb /srv
-
-COPY xenapi.rb /srv
-
-COPY supervisord.conf /srv/supervisord.conf
-
-RUN apt-get update \
- && apt-get install -y supervisor \
- && apt-get clean \
+RUN apk --no-cache add supervisor \
  && BUNDLE_GEMFILE=/srv/Gemfile bundler install
 
 COPY docker/blk/amqpd-blk.rb /srv
