@@ -59,20 +59,6 @@ class Processor
       timestamp: Time.now.to_s,
       payload: \
         case parsed['task']
-        when 'get.vdi.all'
-          xenapi.vdi_list('include')
-        when 'get.vdi.iso'
-          xenapi.vdi_list('only')
-        when 'get.vdi.disk'
-          xenapi.vdi_list('exclude')
-        when 'get.vdi.my'
-          xenapi.vdi_search_by_tag('userid:' + payload)
-        when 'get.vdi.snapshot'
-          xenapi.vdi_list_snapshot
-        when 'get.vdi.tools'
-          xenapi.vdi_list_tools
-        when 'get.vdi.detail'
-          xenapi.vdi_get_record(payload)
         when 'do.vdi.resize'
           xenapi.vdi_resize(payload['vdi_ref'], payload['vdi_new_size'])
         when 'get.vdi.tag'
@@ -83,10 +69,6 @@ class Processor
           xenapi.vdi_rm_tag(payload['vdi_ref'], payload['tag'])
         when 'do.vdi.destroy'
           xenapi.vdi_destroy(payload)
-        when 'get.vbd.all'
-          xenapi.vbd_list
-        when 'get.vbd.detail'
-          xenapi.vbd_get_detail2(payload)
         when 'do.vbd.create'
           xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
         else

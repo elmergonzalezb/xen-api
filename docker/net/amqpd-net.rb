@@ -59,12 +59,6 @@ class Processor
       timestamp: Time.now.to_s,
       payload: \
         case parsed['task']
-        when 'get.network.all'
-          xenapi.network_list
-        when 'get.network.my'
-          xenapi.network_search_by_tag('userid:' + payload)
-        when 'get.network.detail'
-          xenapi.network_get_detail(payload)
         when 'do.network.create'
           response = Array.new(2)
           response[0] = xenapi.network_create(payload['network_name'])
@@ -74,10 +68,6 @@ class Processor
           response
         when 'do.network.destroy'
           xenapi.network_destroy(payload)
-        when 'get.vif.all'
-          xenapi.vif_list
-        when 'get.vif.info'
-          xenapi.vif_get_detail(payload)
         when 'do.vif.create'
           xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
         when 'do.vif.destroy'

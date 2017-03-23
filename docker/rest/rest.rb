@@ -66,6 +66,10 @@ class API < Sinatra::Base
     get '/:uuid/tags' do |uuid|
       json xenapi.vm_get_tags(uuid)
     end
+
+    get '/:uuid/vifs' do |uuid|
+      json xenapi.vm_get_vifs(uuid, true)
+    end
   end
 
   namespace '/net' do
@@ -90,6 +94,16 @@ class API < Sinatra::Base
     end
   end
 
+  namespace '/vif' do
+    get '/' do
+      json xenapi.vif_list
+    end
+
+    get '/:uuid' do |uuid|
+      json xenapi.vif_get_detail(uuid)
+    end
+  end
+
   namespace '/block' do
     namespace '/vdi' do
       get '/' do
@@ -104,6 +118,10 @@ class API < Sinatra::Base
         json xenapi.vdi_list('exclude')
       end
 
+      get '/xs-tools' do
+        json xenapi.vdi_list_tools
+      end
+
       get '/byuser/:userid' do |userid|
         json xenapi.vdi_search_by_tag('userid:' + userid)
       end
@@ -114,6 +132,10 @@ class API < Sinatra::Base
 
       get '/:uuid' do |uuid|
         json xenapi.vdi_get_record(uuid)
+      end
+
+      get '/:uuid/tags' do |uuid|
+        json xenapi.vdi_get_tags(uuid)
       end
     end
 

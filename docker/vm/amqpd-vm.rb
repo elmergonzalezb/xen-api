@@ -71,22 +71,6 @@ class Processor
       timestamp: Time.now.to_s,
       payload: \
         case parsed['task']
-        when 'get.vm.all'
-          xenapi.vm_list_all
-        when 'get.vm.templates'
-          xenapi.vm_list_all_templates
-        when 'get.vm.my'
-          xenapi.vm_search_by_tag('userid:' + payload)
-        when 'get.vm.detail'
-          xenapi.vm_get_record(payload)
-        when 'get.vm.template.detail'
-          xenapi.vm_get_template_record(payload)
-        when 'get.vm.runtime_data'
-          xenapi.vm_get_guest_metrics(payload)
-        when 'get.vm.networks'
-          xenapi.vm_get_guest_metrics_network(payload)
-        when 'get.vm.nics'
-          xenapi.vm_get_vifs(payload, true)
         when 'set.vm.power_on'
           xenapi.vm_power_on(payload)
         when 'set.vm.power_off'
