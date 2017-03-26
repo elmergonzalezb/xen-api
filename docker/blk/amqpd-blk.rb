@@ -11,7 +11,12 @@ class Rabbit
   # initialize by define and start connection
   def initialize
     @connection = Bunny.new(ENV['AMQP_URI'] || 'amqp://localhost')
-    @connection.start
+    begin
+      @connection.start
+    rescue Bunny::TCPConnectionFailedForAllHosts
+      sleep(5)
+      retry
+    end
     @channel = @connection.create_channel
   end
 

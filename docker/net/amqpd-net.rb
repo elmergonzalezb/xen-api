@@ -11,7 +11,12 @@ class Rabbit
   # initialize by define and start connection
   def initialize
     @connection = Bunny.new(ENV['AMQP_URI'] || 'amqp://localhost')
-    @connection.start
+    begin
+      @connection.start
+    rescue Bunny::TCPConnectionFailedForAllHosts
+      sleep(5)
+      retry
+    end
     @channel = @connection.create_channel
   end
 
@@ -68,6 +73,10 @@ class Processor
           response
         when 'do.network.destroy'
           xenapi.network_destroy(payload)
+        when 'set.network.tag'
+          xenapi.network_add_tag(payload['network'], payload['tag'])
+        when 'no.set.network.tag'
+          xenapi.network_rm_tag(payload['network'], payload['tag'])
         when 'do.vif.create'
           xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
         when 'do.vif.destroy'

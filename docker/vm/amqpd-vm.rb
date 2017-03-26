@@ -11,7 +11,12 @@ class Rabbit
   # initialize by define and start connection
   def initialize
     @connection = Bunny.new(ENV['AMQP_URI'] || 'amqp://localhost')
-    @connection.start
+    begin
+      @connection.start
+    rescue Bunny::TCPConnectionFailedForAllHosts
+      sleep(5)
+      retry
+    end
     @channel = @connection.create_channel
   end
 
@@ -87,8 +92,6 @@ class Processor
           xenapi.vm_add_tag(payload['vm'], payload['tag'])
         when 'no.set.vm.tag'
           xenapi.vm_rm_tag(payload['vm'], payload['tag'])
-        when 'get.vm.tags'
-          xenapi.vm_rm_tag(payload['vm'])
         when 'set.vm.ram'
           xenapi.vm_set_max_ram(payload['vm'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
         when 'do.vm.clone'
