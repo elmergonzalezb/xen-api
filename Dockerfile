@@ -5,13 +5,13 @@ COPY ./ /srv
 RUN apk --no-cache add supervisor \
  && BUNDLE_GEMFILE=/srv/Gemfile bundler install
 
-COPY docker/blk/amqpd-blk.rb /srv
+COPY ./docker/blk/amqpd-blk.rb /srv
 
-COPY docker/net/amqpd-net.rb /srv
+COPY ./docker/net/amqpd-net.rb /srv
 
-COPY docker/vm/amqpd-vm.rb /srv
+COPY ./docker/vm/amqpd-vm.rb /srv
 
-COPY docker/rest/rest.rb /srv
+COPY ./docker/rest/rest.rb /srv
 
 ENV AMQP_URI=amqp://nowhere-rabbitmq \
     XAPI_PATH=192.168.255.254 \
