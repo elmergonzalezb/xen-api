@@ -89,9 +89,9 @@ class Processor
         when 'set.vm.name'
           xenapi.vm_set_name(payload['vm'], payload['name'])
         when 'set.vm.tag'
-          xenapi.vm_add_tag(payload['vm'], payload['tag'])
+          xenapi.vm_add_tag(payload['ref'], payload['tag'])
         when 'no.set.vm.tag'
-          xenapi.vm_rm_tag(payload['vm'], payload['tag'])
+          xenapi.vm_rm_tag(payload['ref'], payload['tag'])
         when 'set.vm.ram'
           xenapi.vm_set_max_ram(payload['vm'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
         when 'do.vm.clone'

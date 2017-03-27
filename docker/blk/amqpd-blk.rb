@@ -69,9 +69,9 @@ class Processor
         when 'get.vdi.tag'
           xenapi.vdi_add_tag(payload['vdi_ref'])
         when 'set.vdi.tag'
-          xenapi.vdi_add_tag(payload['vdi_ref'], payload['tag'])
+          xenapi.vdi_add_tag(payload['ref'], payload['tag'])
         when 'no.set.vm.tag'
-          xenapi.vdi_rm_tag(payload['vdi_ref'], payload['tag'])
+          xenapi.vdi_rm_tag(payload['ref'], payload['tag'])
         when 'do.vdi.destroy'
           xenapi.vdi_destroy(payload)
         when 'do.vbd.create'

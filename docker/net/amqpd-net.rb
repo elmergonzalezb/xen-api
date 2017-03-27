@@ -74,9 +74,9 @@ class Processor
         when 'do.network.destroy'
           xenapi.network_destroy(payload)
         when 'set.network.tag'
-          xenapi.network_add_tag(payload['network'], payload['tag'])
+          xenapi.network_add_tag(payload['ref'], payload['tag'])
         when 'no.set.network.tag'
-          xenapi.network_rm_tag(payload['network'], payload['tag'])
+          xenapi.network_rm_tag(payload['ref'], payload['tag'])
         when 'do.vif.create'
           xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
         when 'do.vif.destroy'
