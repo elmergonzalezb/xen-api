@@ -48,6 +48,18 @@ class Rabbit
   end
 end
 
+##
+# Convert Size to Byte-size
+class Calculator
+  def self.to_byte(number, unit)
+    if unit == 'G'
+      number * 1024 * 1024 * 1024
+    elsif unit == 'M'
+      number * 1024 * 1024
+    end
+  end
+end
+
 # Class: Processor
 # The main work logic.
 class Processor
@@ -65,9 +77,7 @@ class Processor
       payload: \
         case parsed['task']
         when 'do.vdi.resize'
-          xenapi.vdi_resize(payload['vdi_ref'], payload['vdi_new_size'])
-        when 'get.vdi.tag'
-          xenapi.vdi_add_tag(payload['vdi_ref'])
+          xenapi.vdi_resize(payload['vdi_ref'], Calculator.to_byte(payload['vdi_size'], payload['vdi_unit']))
         when 'set.vdi.tag'
           xenapi.vdi_add_tag(payload['ref'], payload['tag'])
         when 'no.set.vm.tag'
