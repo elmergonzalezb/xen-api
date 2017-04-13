@@ -18,15 +18,28 @@ class API < Sinatra::Base
     set :bind, '0.0.0.0'
   end
 
+  # Retry code
+  # Auto Retry connect
+  # Assume the XenAPI is Dead first
+  exception = true
+
   xenapi = XenApi.new(ENV['XAPI_PATH'], ENV['XAPI_PORT'], ENV['XAPI_SSL'].to_s.eql?('true') ? true : false)
   begin
     xenapi.session_login(ENV['XAPI_USER'], ENV['XAPI_PASS'])
-  rescue Interrupt => _
-    xenapi.session_logout
+  rescue Errno::EINVAL, Errno::ECONNRESET, Errno::ECONNREFUSED => _
+    # Uh Oh the API is dead, retry
+    retry
+  else
+    # OK the XenAPI is alive, gogogo
+    exception = false
   end
 
   get '/' do
-    'OK'
+    if exception == false
+      200
+    else
+      503
+    end
   end
 
   namespace '/vm' do
