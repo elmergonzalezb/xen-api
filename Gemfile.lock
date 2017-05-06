@@ -5,11 +5,8 @@ GEM
     backports (3.6.8)
     bunny (2.6.3)
       amq-protocol (>= 2.0.1)
-    json (2.0.3)
-    mini_portile2 (2.1.0)
+    json_pure (2.1.0)
     multi_json (1.12.1)
-    nokogiri (1.7.0.1)
-      mini_portile2 (~> 2.1.0)
     nori (2.6.0)
     rack (1.6.5)
     rack-protection (1.5.3)
@@ -34,8 +31,7 @@ PLATFORMS
 
 DEPENDENCIES
   bunny
-  json
-  nokogiri
+  json_pure
   nori
   sinatra
   sinatra-contrib

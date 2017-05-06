@@ -44,7 +44,7 @@ class Rabbit
 
   # Set up the outgoing queue
   def queue_out
-    @channel.queue('hypervisor-net-out', durable: true)
+    @channel.queue('out', durable: true)
   end
 end
 
