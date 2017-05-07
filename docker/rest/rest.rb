@@ -60,6 +60,10 @@ class API < Sinatra::Base
       json xenapi.vm_list_all_templates
     end
 
+    get '/templates/bytag/:tag' do |tag|
+      json xenapi.vm_search_templates_by_tag(tag)
+    end
+
     get '/templates/:uuid' do |uuid|
       json xenapi.vm_get_template_record(uuid)
     end

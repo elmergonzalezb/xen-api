@@ -516,12 +516,8 @@ class XenApi
   # +tag+         :: Tag
   # Returns: Tags
   def vm_get_tags(vm_uuid)
-    if check_vm_entity_validity(vm_uuid)
-      Messages.error_not_permitted
-    else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      @connect.call('VM.get_tags', @session, vm_opaqueref)
-    end
+    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+    @connect.call('VM.get_tags', @session, vm_opaqueref)
   end
 
   ##
@@ -531,6 +527,19 @@ class XenApi
   # Returns Matched VM
   def vm_search_by_tag(tag)
     all_vm = vm_list_all
+    all_vm['Value'].select do |vm_uuid|
+      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+      vm_get_tags(vm_opaqueref)['Value'].include?(tag)
+    end
+  end
+
+  ##
+  # search Template by tag
+  #
+  # +tag+         :: Tag
+  # Returns Matched VM
+  def vm_search_templates_by_tag(tag)
+    all_vm = vm_list_all_templates
     all_vm['Value'].select do |vm_uuid|
       vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       vm_get_tags(vm_opaqueref)['Value'].include?(tag)
