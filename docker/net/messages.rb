@@ -66,8 +66,8 @@ class Messages
     { 'Status' => 'Success', 'Value' => payload }
   end
 
-  def self.success_custom_message(Description)
-    { 'Status' => 'Success', 'Value' => Description }
+  def self.success_custom_message(description)
+    { 'Status' => 'Success', 'Value' => description }
   end
 
   def self.success_custom_message_with_payload(_, payload)
