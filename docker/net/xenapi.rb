@@ -495,12 +495,8 @@ class XenApi
   # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
   def vm_add_tag(vm_uuid, tag)
-    if check_vm_entity_validity(vm_uuid)
-      Messages.error_not_permitted
-    else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      @connect.call('VM.add_tags', @session, vm_opaqueref, tag)
-    end
+    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+    @connect.call('VM.add_tags', @session, vm_opaqueref, tag)
   end
 
   ##
@@ -509,12 +505,8 @@ class XenApi
   # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
   def vm_rm_tag(vm_uuid, tag)
-    if check_vm_entity_validity(vm_uuid)
-      Messages.error_not_permitted
-    else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      @connect.call('VM.remove_tags', @session, vm_opaqueref, tag)
-    end
+    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
+    @connect.call('VM.remove_tags', @session, vm_opaqueref, tag)
   end
 
   ##
