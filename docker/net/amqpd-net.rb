@@ -58,37 +58,31 @@ class Processor
     rabbit = Rabbit.new
     parsed = JSON.parse(body)
     payload = parsed['payload']
-    msg = {
-      seq: parsed['id'],
-      taskid: parsed['uuid'],
-      timestamp: Time.now.to_s,
-      payload: \
-        case parsed['task']
-        when 'do.network.create'
-          response = Array.new(2)
-          response[0] = xenapi.network_create(payload['network_name'])
-          unless response[0]['Status'] == 'Success'
-            response[1] = xenapi.network_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
+    msg = case parsed['task']
+          when 'do.network.create'
+            response = Array.new(2)
+            response[0] = xenapi.network_create(payload['network_name'])
+            unless response[0]['Status'] == 'Success'
+              response[1] = xenapi.network_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
+            end
+            response
+          when 'do.network.destroy'
+            xenapi.network_destroy(payload)
+          when 'set.network.tag'
+            xenapi.network_add_tag(payload['ref'], payload['tag'])
+          when 'no.set.network.tag'
+            xenapi.network_rm_tag(payload['ref'], payload['tag'])
+          when 'do.vif.create'
+            xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
+          when 'do.vif.destroy'
+            xenapi.vif_destroy(payload)
+          when 'do.vif.plug'
+            xenapi.vif_plug(payload)
+          when 'do.vif.unplug'
+            xenapi.vif_unplug(payload)
+          else
+            Messages.error_undefined
           end
-          response
-        when 'do.network.destroy'
-          xenapi.network_destroy(payload)
-        when 'set.network.tag'
-          xenapi.network_add_tag(payload['ref'], payload['tag'])
-        when 'no.set.network.tag'
-          xenapi.network_rm_tag(payload['ref'], payload['tag'])
-        when 'do.vif.create'
-          xenapi.vif_create(payload['vm'], payload['net'], payload['vm_slot'])
-        when 'do.vif.destroy'
-          xenapi.vif_destroy(payload)
-        when 'do.vif.plug'
-          xenapi.vif_plug(payload)
-        when 'do.vif.unplug'
-          xenapi.vif_unplug(payload)
-        else
-          Messages.error_undefined
-        end
-    }
     xenapi.session_logout
     rabbit.publish(JSON.generate(msg), msg_id)
   end

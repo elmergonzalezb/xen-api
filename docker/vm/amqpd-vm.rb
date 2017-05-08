@@ -70,71 +70,65 @@ class Processor
     rabbit = Rabbit.new
     parsed = JSON.parse(body)
     payload = parsed['payload']
-    msg = {
-      seq: parsed['id'],
-      taskid: parsed['uuid'],
-      timestamp: Time.now.to_s,
-      payload: \
-        case parsed['task']
-        when 'set.vm.power_on'
-          xenapi.vm_power_on(payload)
-        when 'set.vm.power_off'
-          xenapi.vm_power_off(payload)
-        when 'set.vm.power_reboot'
-          xenapi.vm_power_reboot(payload)
-        when 'set.vm.power_suspend'
-          xenapi.vm_power_pause(payload)
-        when 'set.vm.power_resume'
-          xenapi.vm_power_unpause(payload)
-        when 'set.vm.name'
-          xenapi.vm_set_name(payload['vm'], payload['name'])
-        when 'set.vm.tag'
-          xenapi.vm_add_tag(payload['ref'], payload['tag'])
-        when 'no.set.vm.tag'
-          xenapi.vm_rm_tag(payload['ref'], payload['tag'])
-        when 'set.vm.ram'
-          xenapi.vm_set_max_ram(payload['vm'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
-        when 'do.vm.clone'
-          response = Array.new(2)
-          response[0] = xenapi.vm_clone(payload['src_vm'], payload['new_vm_name'])
-          unless response[0]['Status'] == 'Success'
-            response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
-          end
-          response
-        when 'do.vm.clone.from_template'
-          cmd_prefix = \
-            case payload['distro']
-            when 'debianlike'
-              '-- console=hvc0 ks='
-            when 'rhlike'
-              'console=hvc0 utf8 nogpt noipv6 ks='
-            when 'sleslike'
-              'console=xvc0 xencons=xvc autoyast2='
+    msg = case parsed['task']
+          when 'set.vm.power_on'
+            xenapi.vm_power_on(payload)
+          when 'set.vm.power_off'
+            xenapi.vm_power_off(payload)
+          when 'set.vm.power_reboot'
+            xenapi.vm_power_reboot(payload)
+          when 'set.vm.power_suspend'
+            xenapi.vm_power_pause(payload)
+          when 'set.vm.power_resume'
+            xenapi.vm_power_unpause(payload)
+          when 'set.vm.name'
+            xenapi.vm_set_name(payload['vm'], payload['name'])
+          when 'set.vm.tag'
+            xenapi.vm_add_tag(payload['vm'], payload['tag'])
+          when 'no.set.vm.tag'
+            xenapi.vm_rm_tag(payload['vm'], payload['tag'])
+          when 'set.vm.ram'
+            xenapi.vm_set_max_ram(payload['vm'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
+          when 'do.vm.clone'
+            response = Array.new(2)
+            response[0] = xenapi.vm_clone(payload['src_vm'], payload['new_vm_name'])
+            unless response[0]['Status'] == 'Success'
+              response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
             end
-          response = Array.new(3)
-          response[0] = xenapi.vm_clone_from_template(\
-            payload['src_vm'], \
-            payload['new_vm_name'], \
-            cmd_prefix + payload['ks_url'], \
-            payload['repo_url'], \
-            payload['distro'], \
-            payload['deb_distro_release'], \
-            payload['network_ref'],
-            Calculator.to_byte(payload['disk_size'], payload['disk_unit'])
-          )
-          unless response[0]['Status'] != 'Success'
-            response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
+            response
+          when 'do.vm.clone.from_template'
+            cmd_prefix = \
+              case payload['distro']
+              when 'debianlike'
+                '-- console=hvc0 ks='
+              when 'rhlike'
+                'console=hvc0 utf8 nogpt noipv6 ks='
+              when 'sleslike'
+                'console=xvc0 xencons=xvc autoyast2='
+              end
+            response = Array.new(3)
+            response[0] = xenapi.vm_clone_from_template(\
+              payload['src_vm'], \
+              payload['new_vm_name'], \
+              cmd_prefix + payload['ks_url'], \
+              payload['repo_url'], \
+              payload['distro'], \
+              payload['deb_distro_release'], \
+              payload['network_ref'],
+              Calculator.to_byte(payload['disk_size'], payload['disk_unit'])
+            )
+            unless response[0]['Status'] != 'Success'
+              response[1] = xenapi.vm_add_tag(response[0]['Value'], 'userid:' + payload['userid'])
+            end
+            unless response[1]['Status'] != 'Success'
+              response[2] = xenapi.vm_set_max_ram(response[0]['Value'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
+            end
+            response
+          when 'do.vm.destroy'
+            xenapi.vm_destroy(payload)
+          else
+            Messages.error_undefined
           end
-          unless response[1]['Status'] != 'Success'
-            response[2] = xenapi.vm_set_max_ram(response[0]['Value'], Calculator.to_byte(payload['ram_size'], payload['ram_unit']))
-          end
-          response
-        when 'do.vm.destroy'
-          xenapi.vm_destroy(payload)
-        else
-          Messages.error_undefined
-        end
-    }
     xenapi.session_logout
     rabbit.publish(JSON.generate(msg), msg_id)
   end

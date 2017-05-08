@@ -70,26 +70,20 @@ class Processor
     rabbit = Rabbit.new
     parsed = JSON.parse(body)
     payload = parsed['payload']
-    msg = {
-      seq: parsed['id'],
-      taskid: parsed['uuid'],
-      timestamp: Time.now.to_s,
-      payload: \
-        case parsed['task']
-        when 'do.vdi.resize'
-          xenapi.vdi_resize(payload['vdi_ref'], Calculator.to_byte(payload['vdi_size'], payload['vdi_unit']))
-        when 'set.vdi.tag'
-          xenapi.vdi_add_tag(payload['ref'], payload['tag'])
-        when 'no.set.vm.tag'
-          xenapi.vdi_rm_tag(payload['ref'], payload['tag'])
-        when 'do.vdi.destroy'
-          xenapi.vdi_destroy(payload)
-        when 'do.vbd.create'
-          xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
-        else
-          Messages.error_undefined
-        end
-    }
+    msg = case parsed['task']
+          when 'do.vdi.resize'
+            xenapi.vdi_resize(payload['vdi_ref'], Calculator.to_byte(payload['vdi_size'], payload['vdi_unit']))
+          when 'set.vdi.tag'
+            xenapi.vdi_add_tag(payload['ref'], payload['tag'])
+          when 'no.set.vm.tag'
+            xenapi.vdi_rm_tag(payload['ref'], payload['tag'])
+          when 'do.vdi.destroy'
+            xenapi.vdi_destroy(payload)
+          when 'do.vbd.create'
+            xenapi.vbd_create(payload['vm_ref'], payload['vdi_ref'], payload['vm_slot'])
+          else
+            Messages.error_undefined
+          end
     xenapi.session_logout
     rabbit.publish(JSON.generate(msg), msg_id)
   end
