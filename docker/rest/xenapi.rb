@@ -75,12 +75,12 @@ class XenApi
   def vm_list_all
     all_records = @connect.call('VM.get_all', @session)
     # Filter Away Control Domain
-    all_records['Value'].select! do |vm_opaqueref|
-      !check_vm_entity_is_dom0(vm_opaqueref)
+    all_records['Value'].reject! do |vm_opaqueref|
+      check_vm_entity_is_dom0(vm_opaqueref)
     end
     # Filter Away Template
-    all_records['Value'].select! do |vm_opaqueref|
-      !check_vm_entity_is_template(vm_opaqueref)
+    all_records['Value'].reject! do |vm_opaqueref|
+      check_vm_entity_is_template(vm_opaqueref)
     end
     all_records['Value'].map! do |ref|
       vm_get_uuid(ref)['Value']
@@ -113,8 +113,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      record = @connect.call('VM.get_record', @session, vm_opaqueref)
+      record = @connect.call('VM.get_record', @session, vm_get_ref(vm_uuid)['Value'])
       # Post processing
       # 1. Decode Time Object to Human-readable
       if record.key?('Value')
@@ -132,8 +131,8 @@ class XenApi
         # 2. Last Boot Record is JSON, decode to Ruby Hash so that it won't clash
         #    the JSON generator
         record['Value']['last_booted_record'] = parse_last_boot_record(record['Value']['last_booted_record'])
-        # Output. return is redundant in Ruby World.
       end
+      # Output. return is redundant in Ruby World.
       record
     end
   end
@@ -146,8 +145,7 @@ class XenApi
     if check_vm_template_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      record = @connect.call('VM.get_record', @session, vm_opaqueref)
+      record = @connect.call('VM.get_record', @session, vm_get_ref(vm_uuid)['Value'])
       if record.key?('Value')
         begin
           record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
@@ -168,8 +166,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      ref = @connect.call('VM.get_metrics', @session, vm_opaqueref)['Value']
+      ref = @connect.call('VM.get_metrics', @session, vm_get_ref(vm_uuid)['Value'])['Value']
       dat = @connect.call('VM_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
       if dat.key?('Value')
@@ -196,8 +193,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
+      ref = @connect.call('VM.get_guest_metrics', @session, vm_get_ref(vm_uuid)['Value'])['Value']
       dat = @connect.call('VM_guest_metrics.get_record', @session, ref)
       # convert mess stuffs to Human-readable
       if dat.key?('Value')
@@ -220,8 +216,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      ref = @connect.call('VM.get_guest_metrics', @session, vm_opaqueref)['Value']
+      ref = @connect.call('VM.get_guest_metrics', @session, vm_get_ref(vm_uuid)['Value'])['Value']
       @connect.call('VM_guest_metrics.get_networks', @session, ref)
     end
   end
@@ -235,10 +230,9 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      vbds = @connect.call('VM.get_VBDs', @session, vm_opaqueref)
+      vbds = @connect.call('VM.get_VBDs', @session, vm_get_ref(vm_uuid)['Value'])
     end
-    if uuid_mode == true && vbd.key?('Value') && vbds['Value'].empty? == false
+    if uuid_mode == true && vbds.key?('Value') && vbds['Value'].empty? == false
       vbds['Value'].map! do |ref|
         vbd_get_uuid(ref)['Value']
       end
@@ -255,8 +249,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      vifs = @connect.call('VM.get_VIFs', @session, vm_opaqueref)
+      vifs = @connect.call('VM.get_VIFs', @session, vm_get_ref(vm_uuid)['Value'])
     end
     if uuid_mode == true && vifs.key?('Value') && vifs['Value'].empty? == false
       vifs['Value'].map! do |ref|
@@ -274,8 +267,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      task_token = @connect.call('Async.VM.start', @session, vm_opaqueref, false, false)
+      task_token = @connect.call('Async.VM.start', @session, vm_get_ref(vm_uuid)['Value'], false, false)
       async_task_manager(task_token, false)
     end
   end
@@ -288,8 +280,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      task_token = @connect.call('Async.VM.shutdown', @session, vm_opaqueref)
+      task_token = @connect.call('Async.VM.shutdown', @session, vm_get_ref(vm_uuid)['Value'])
       async_task_manager(task_token, false)
     end
   end
@@ -302,8 +293,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      task_token = @connect.call('Async.VM.hard_reboot', @session, vm_opaqueref)
+      task_token = @connect.call('Async.VM.hard_reboot', @session, vm_get_ref(vm_uuid)['Value'])
       async_task_manager(task_token, false)
     end
   end
@@ -316,10 +306,9 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       # API Manual P116
       # void suspend (session_id s, VM ref vm)
-      task_token = @connect.call('Async.VM.suspend', @session, vm_opaqueref)
+      task_token = @connect.call('Async.VM.suspend', @session, vm_get_ref(vm_uuid)['Value'])
       async_task_manager(task_token, false)
     end
   end
@@ -332,10 +321,9 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
       # API Manual P116-117
       # void resume (session_id s, VM ref vm, bool start_paused, bool force)
-      task_token = @connect.call('Async.VM.resume', @session, vm_opaqueref, false, false)
+      task_token = @connect.call('Async.VM.resume', @session, vm_get_ref(vm_uuid)['Value'], false, false)
       async_task_manager(task_token, false)
     end
   end
@@ -353,9 +341,8 @@ class XenApi
     if check_vm_entity_validity(old_vm_uuid) || new_vm_name.nil? || new_vm_name == ''
       Messages.error_not_permitted
     else
-      old_vm_opaqueref = vm_get_ref(old_vm_uuid)['Value']
       # The NULL Reference is required to fulfill the requirement.
-      task_token = @connect.call('Async.VM.copy', @session, old_vm_opaqueref, new_vm_name, 'OpaqueRef:NULL')
+      task_token = @connect.call('Async.VM.copy', @session, vm_get_ref(old_vm_uuid)['Value'], new_vm_name, 'OpaqueRef:NULL')
       result = async_task_manager(task_token, true)
       if result.key?('Status') && result['Status'] == 'Error'
         result
@@ -495,8 +482,7 @@ class XenApi
   # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
   def vm_add_tag(vm_uuid, tag)
-    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-    @connect.call('VM.add_tags', @session, vm_opaqueref, tag)
+    @connect.call('VM.add_tags', @session, vm_get_ref(vm_uuid)['Value'], tag)
   end
 
   ##
@@ -505,8 +491,7 @@ class XenApi
   # +vm_uuid+:: VM UUID
   # +tag+         :: Tag
   def vm_rm_tag(vm_uuid, tag)
-    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-    @connect.call('VM.remove_tags', @session, vm_opaqueref, tag)
+    @connect.call('VM.remove_tags', @session, vm_get_ref(vm_uuid)['Value'], tag)
   end
 
   ##
@@ -516,8 +501,7 @@ class XenApi
   # +tag+         :: Tag
   # Returns: Tags
   def vm_get_tags(vm_uuid)
-    vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-    @connect.call('VM.get_tags', @session, vm_opaqueref)
+    @connect.call('VM.get_tags', @session, vm_get_ref(vm_uuid)['Value'])
   end
 
   ##
@@ -528,8 +512,7 @@ class XenApi
   def vm_search_by_tag(tag)
     all_vm = vm_list_all
     all_vm['Value'].select do |vm_uuid|
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      vm_get_tags(vm_opaqueref)['Value'].include?(tag)
+      vm_get_tags(vm_uuid)['Value'].include?(tag)
     end
   end
 
@@ -541,8 +524,7 @@ class XenApi
   def vm_search_templates_by_tag(tag)
     all_vm = vm_list_all_templates
     all_vm['Value'].select do |vm_uuid|
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      vm_get_tags(vm_opaqueref)['Value'].include?(tag)
+      vm_get_tags(vm_uuid)['Value'].include?(tag)
     end
   end
 
@@ -555,8 +537,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid)
       Messages.error_not_permitted
     else
-      vm_opaqueref = vm_get_ref(vm_uuid)['Value']
-      @connect.call('VM.set_name_label', @session, vm_opaqueref, vm_name)
+      @connect.call('VM.set_name_label', @session, vm_get_ref(vm_uuid)['Value'], vm_name)
     end
   end
 
@@ -659,12 +640,12 @@ class XenApi
   def vdi_list(iso_cd)
     all_records = @connect.call('VDI.get_all', @session)
     # Filter Away Snapshots
-    all_records['Value'].select! do |vdi_opaqueref|
-      !check_vdi_is_a_snapshot(vdi_opaqueref)
+    all_records['Value'].reject! do |vdi_opaqueref|
+      check_vdi_is_a_snapshot(vdi_opaqueref)
     end
     # Filter Away XS-Tools
-    all_records['Value'].select! do |vdi_opaqueref|
-      !check_vdi_is_xs_iso(vdi_opaqueref)
+    all_records['Value'].reject! do |vdi_opaqueref|
+      check_vdi_is_xs_iso(vdi_opaqueref)
     end
     all_records['Value'].select! do |vdi_opaqueref|
       !check_vdi_is_iso(vdi_opaqueref) if iso_cd == 'exclude'
@@ -713,8 +694,7 @@ class XenApi
     if check_vdi_entity_validity(vdi_uuid)
       Messages.error_not_permitted
     else
-      vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
-      record = @connect.call('VDI.get_record', @session, vdi_opaqueref)
+      record = @connect.call('VDI.get_record', @session, vdi_get_ref(vdi_uuid)['Value'])
       begin
         record['Value']['snapshot_time'] = record['Value']['snapshot_time'].to_time.to_s
       rescue NoMethodError
@@ -737,8 +717,7 @@ class XenApi
       Messages.error_not_permitted
     else
       begin
-        vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
-        @connect.call('VDI.resize_online', @session, vdi_opaqueref, new_vdi_size)
+        @connect.call('VDI.resize_online', @session, vdi_get_ref(vdi_uuid)['Value'], new_vdi_size)
       rescue RuntimeError
         Messages.error_unsupported
       end
@@ -813,15 +792,14 @@ class XenApi
   # +tag+         :: Tag
   # Returns Matched VM
   def vdi_search_by_tag(tag)
-    all_vdi = vdi_list('include')['Value']
-    result = all_vdi.select do |vdi_uuid|
-      vdi_opaqueref = vdi_get_ref(vdi_uuid)['Value']
-      vdi_get_tags(vdi_opaqueref)['Value'].include?(tag)
+    all_vdi = vdi_list('include')
+    all_vdi['Value'].select! do |vdi_uuid|
+      vdi_get_tags(vdi_uuid)['Value'].include?(tag)
     end
-    result.map! do |ref|
+    all_vdi['Value'].map! do |ref|
       vdi_get_uuid(ref)['Value']
     end
-    Messages.success_nodesc_with_payload(result)
+    all_vdi
   end
 
   ##
@@ -948,7 +926,7 @@ class XenApi
     if check_vm_entity_validity(vm_uuid) || net_opaqueref['Status'] != 'Success'
       Messages.error_not_permitted
     else
-      vbd_object = {
+      vif_object = {
         device: slot.to_s,
         network: net_opaqueref['Value'],
         VM: vm_get_ref(vm_uuid)['Value'],
@@ -958,7 +936,7 @@ class XenApi
         qos_algorithm_type: '',
         qos_algorithm_params: {}
       }
-      result = @connect.call('VIF.create', @session, vbd_object)
+      result = @connect.call('VIF.create', @session, vif_object)
       result.key?('Value') ? result['Value'] = vif_get_uuid(result['Value'])['Value'] : nil
       result
     end
@@ -1081,14 +1059,11 @@ class XenApi
   # Search network by Tag
   # +tag+:: the name tag
   def network_search_by_tag(tag)
-    networks = network_list['Value']
-    networks.select! do |network_opaqueref|
-      network_get_tags(network_opaqueref)['Value'].include?(tag)
+    networks = network_list
+    networks['Value'].select! do |network_uuid|
+      network_get_tags(network_uuid)['Value'].include?(tag)
     end
-    networks.map! do |ref|
-      network_get_uuid(ref)['Value']
-    end
-    Messages.success_nodesc_with_payload(networks)
+    networks
   end
 
   ##
@@ -1113,12 +1088,10 @@ class XenApi
   # +uuid_mode+:: results in UUID? true / false
   def sr_list(iso_sr, uuid_mode)
     all_sr = @connect.call('SR.get_all', @session)
-    if iso_sr == 'exclude'
-      all_sr['Value'].select! do |opaqueref|
-        check_sr_is_vdisr_by_ref(opaqueref) if iso_sr == 'exclude'
-        check_sr_is_iso(opaqueref) if iso_sr == 'only'
-        true if iso_sr == 'include'
-      end
+    all_sr['Value'].select! do |opaqueref|
+      check_sr_is_vdisr_by_ref(opaqueref) if iso_sr == 'exclude'
+      check_sr_is_iso(opaqueref) if iso_sr == 'only'
+      true if iso_sr == 'include'
     end
     if uuid_mode == true
       all_sr['Value'].map! do |ref|
@@ -1156,7 +1129,7 @@ class XenApi
   # +tag+    :: Tag
   def sr_add_tag(sr_uuid, tag)
     sr_opaqueref = sr_get_ref(sr_uuid)
-    sr_opaqueref.key?('Value') ? @connect.call('VDI.add_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag) : sr_opaqueref
+    sr_opaqueref.key?('Value') ? @connect.call('SR.add_tags', @session, sr_opaqueref['Value'], tag) : sr_opaqueref
   end
 
   ##
@@ -1166,7 +1139,7 @@ class XenApi
   # +tag+    :: Tag
   def sr_rm_tag(sr_uuid, tag)
     sr_opaqueref = sr_get_ref(sr_uuid)
-    sr_opaqueref.key?('Value') ? @connect.call('SR.remove_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag) : sr_opaqueref
+    sr_opaqueref.key?('Value') ? @connect.call('SR.remove_tags', @session, sr_opaqueref['Value'], tag) : sr_opaqueref
   end
 
   ##
@@ -1194,14 +1167,11 @@ class XenApi
   # +tag+         :: Tag
   # Returns Matched VM
   def sr_search_by_tag(tag)
-    all_sr = sr_list('include', false)['Value']
-    result = all_sr.select do |sr_ref|
-      sr_get_tags(sr_ref)['Value'].include?(tag)
+    all_sr = sr_list('include', true)
+    all_sr['Value'].select! do |sr_uuid|
+      sr_get_tags(sr_uuid)['Value'].include?(tag)
     end
-    result.map! do |ref|
-      vdi_get_uuid(ref)['Value']
-    end
-    Messages.success_nodesc_with_payload(result)
+    all_sr
   end
 
   ##
@@ -1251,7 +1221,7 @@ class XenApi
     result = @connect.call('VM.get_PV_bootloader', @session, vm_opaqueref)['Value']
     # PV Templates always have pygrub in PV_bootloader field
     # https://wiki.xenproject.org/wiki/XCP_PV_templates_start
-    # pygrub will be used after install finished
+    # pygrub will be used after install finished, eliloader is used on templates
     result == 'eliloader' ? true : false
   end
 
@@ -1404,7 +1374,11 @@ class XenApi
   # https://github.com/savonrb/nori
   def xml_parse(raw_xml)
     xml_parser = Nori.new(parser: :rexml, convert_tags_to: ->(tag) { tag.snakecase })
-    xml_parser.parse(raw_xml)
+    begin
+      xml_parser.parse(raw_xml)
+    rescue
+      true
+    end
   end
 
   ##

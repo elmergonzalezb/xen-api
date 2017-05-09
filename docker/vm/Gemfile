@@ -4,3 +4,5 @@ source 'https://rubygems.org'
 gem 'bunny'
 gem 'json_pure'
 gem 'nori'
+
+gem 'xmlrpc'
