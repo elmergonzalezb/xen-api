@@ -511,9 +511,10 @@ class XenApi
   # Returns Matched VM
   def vm_search_by_tag(tag)
     all_vm = vm_list_all
-    all_vm['Value'].select do |vm_uuid|
+    all_vm['Value'].select! do |vm_uuid|
       vm_get_tags(vm_uuid)['Value'].include?(tag)
     end
+    all_vm
   end
 
   ##
@@ -523,9 +524,10 @@ class XenApi
   # Returns Matched VM
   def vm_search_templates_by_tag(tag)
     all_vm = vm_list_all_templates
-    all_vm['Value'].select do |vm_uuid|
+    all_vm['Value'].select! do |vm_uuid|
       vm_get_tags(vm_uuid)['Value'].include?(tag)
     end
+    all_vm
   end
 
   ##
@@ -752,11 +754,7 @@ class XenApi
   # +vdi_uuid+:: VDI UUID
   # +tag+          :: Tag
   def vdi_add_tag(vdi_uuid, tag)
-    if check_vdi_entity_validity(vdi_uuid)
-      Messages.error_not_permitted
-    else
-      @connect.call('VDI.add_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
-    end
+    @connect.call('VDI.add_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
   end
 
   ##
@@ -765,11 +763,7 @@ class XenApi
   # +vdi_uuid+:: VDI UUID
   # +tag+          :: Tag
   def vdi_rm_tag(vdi_uuid, tag)
-    if check_vdi_entity_validity(vdi_uuid)
-      Messages.error_not_permitted
-    else
-      @connect.call('VDI.remove_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
-    end
+    @connect.call('VDI.remove_tags', @session, vdi_get_ref(vdi_uuid)['Value'], tag)
   end
 
   ##
@@ -780,11 +774,7 @@ class XenApi
   # Returns:
   # Tags
   def vdi_get_tags(vdi_uuid)
-    if check_vdi_entity_validity(vdi_uuid)
-      Messages.error_not_permitted
-    else
-      @connect.call('VDI.get_tags', @session, vdi_get_ref(vdi_uuid)['Value'])
-    end
+    @connect.call('VDI.get_tags', @session, vdi_get_ref(vdi_uuid)['Value'])
   end
 
   ##
@@ -795,9 +785,6 @@ class XenApi
     all_vdi = vdi_list('include')
     all_vdi['Value'].select! do |vdi_uuid|
       vdi_get_tags(vdi_uuid)['Value'].include?(tag)
-    end
-    all_vdi['Value'].map! do |ref|
-      vdi_get_uuid(ref)['Value']
     end
     all_vdi
   end
