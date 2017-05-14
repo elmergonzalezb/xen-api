@@ -15,6 +15,9 @@ module XMLRPC
   module Config
     ##
     # Disable SignedInt Check
+    # http://stackoverflow.com/questions/16067263/how-to-override-constant-of-a-gem-ruby-on-rails
+    remove_const(:ENABLE_BIGINT) if defined?(ENABLE_BIGINT)
+
     ENABLE_BIGINT = true
   end
 end
