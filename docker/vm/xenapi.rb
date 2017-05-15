@@ -979,6 +979,9 @@ class XenApi
     result['Value'].map! do |ref|
       network_get_uuid(ref)['Value']
     end
+    networks['Value'].reject! do |network_uuid|
+      network_get_detail(network_uuid)['Value']['bridge'] == 'xenapi'
+    end
     result
   end
 
@@ -1066,6 +1069,26 @@ class XenApi
   # Get Network OpaqueRef
   def network_get_ref(network_uuid)
     @connect.call('network.get_by_uuid', @session, network_uuid)
+  end
+
+  ##
+  # Find Auto-Join (automatic: true)
+  def network_get_default
+    networks = network_list
+    networks['Value'].select! do |network_uuid|
+      network_get_detail(network_uuid)['Value']['other_config'].key?('automatic') && network_get_detail(network_uuid)['Value']['other_config']['automatic'] == true
+    end
+    networks
+  end
+
+  ##
+  # Find XenCenter Created Network
+  def network_get_xc
+    networks = network_list
+    networks['Value'].select! do |network_uuid|
+      network_get_detail(network_uuid)['Value']['other_config'].key?('automatic')
+    end
+    networks
   end
 
   #---

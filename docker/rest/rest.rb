@@ -94,6 +94,14 @@ class API < Sinatra::Base
       json xenapi.network_list
     end
 
+    get '/xencenter' do
+      json xenapi.network_get_xc
+    end
+
+    get '/auto' do
+      json xenapi.network_get_default
+    end
+
     get '/byuser/:userid' do |userid|
       json xenapi.network_search_by_tag('userid:' + userid)
     end
