@@ -979,7 +979,7 @@ class XenApi
     result['Value'].map! do |ref|
       network_get_uuid(ref)['Value']
     end
-    networks['Value'].reject! do |network_uuid|
+    result['Value'].reject! do |network_uuid|
       network_get_detail(network_uuid)['Value']['bridge'] == 'xenapi'
     end
     result
